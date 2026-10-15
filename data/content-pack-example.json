@@ -1,0 +1,41 @@
+{
+  "format": "dnd-content-pack",
+  "name": "Example homebrew pack",
+  "_about": "Load this on the Backup & level up tab under Content packs. Every section is optional. Use it for spells, items and subclasses from books you own: write the summaries in your own words. Spell time is action, bonus, reaction, or text like \"1 minute\". Subclass features are listed by class level.",
+  "spells": [
+    {
+      "name": "Ember Flick",
+      "lvl": 0,
+      "school": "Evocation",
+      "time": "action",
+      "range": "30 ft",
+      "comp": "V, S",
+      "dur": "Instantaneous",
+      "save": "Dex",
+      "sum": "A spark leaps at one creature. On a failed Dex save it takes 1d6 fire damage.",
+      "classes": ["Sorcerer", "Wizard"]
+    },
+    {
+      "name": "Warding Chime",
+      "lvl": 1,
+      "school": "Abjuration",
+      "time": "reaction",
+      "range": "Self",
+      "comp": "V",
+      "dur": "1 round",
+      "conc": false,
+      "sum": "When you're hit, a chime rings and you gain +2 AC until the start of your next turn.",
+      "up": "+1 AC for every two slot levels above 1st.",
+      "classes": ["Bard", "Cleric"]
+    }
+  ],
+  "items": [
+    { "name": "Lantern of Calm Waters", "rarity": "Uncommon", "type": "Wondrous item", "attune": false, "text": "While lit, creatures within 10 ft have advantage on saves against being frightened." }
+  ],
+  "features": [
+    { "name": "Tidecaller", "text": "Bonus action: push a creature within 15 ft up to 10 ft. Uses equal your proficiency bonus per long rest." }
+  ],
+  "subclasses": {
+    "Druid": { "Circle of the Tides": { "2": ["Tidecaller"], "6": [], "10": [], "14": [] } }
+  }
+}

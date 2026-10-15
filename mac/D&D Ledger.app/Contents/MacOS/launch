@@ -1,0 +1,32 @@
+#!/bin/bash
+# Starts the ledger's local server (if it isn't running) and opens it in its own window.
+# The repo folder is three levels up: <repo>/mac/D&D Ledger.app/Contents/MacOS/launch
+export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin:$PATH"
+APP="$(cd "$(dirname "$0")/../.." && pwd)"
+REPO="$(cd "$APP/../.." && pwd)"
+# If the app was copied out of the repo (e.g. to Applications), fall back to the usual checkout.
+# Keep the repo outside Documents/Desktop/Downloads: macOS blocks the server's Python from reading those.
+if [ ! -f "$REPO/tools/serve.py" ]; then
+  for R in "$HOME/GitHub/dnd-character-sheet" "$HOME/dnd-character-sheet" "$HOME/Documents/GitHub/dnd-character-sheet"; do [ -f "$R/tools/serve.py" ] && REPO="$R" && break; done
+fi
+PORT=8790
+URL="http://localhost:$PORT/"
+LOG="$HOME/Library/Logs/dnd-ledger.log"
+
+if ! curl -fs -o /dev/null "${URL}api/ping"; then
+  nohup python3 "$REPO/tools/serve.py" --port "$PORT" >>"$LOG" 2>&1 &
+  for i in $(seq 1 50); do curl -fs -o /dev/null "${URL}api/ping" && break; sleep 0.2; done
+fi
+if ! curl -fs -o /dev/null "${URL}api/ping"; then
+  osascript -e 'display alert "D&D Ledger couldn'"'"'t start" message "The local server didn'"'"'t start. Details are in ~/Library/Logs/dnd-ledger.log."'
+  exit 1
+fi
+
+# Open as its own app window: Chrome, then Edge, then Brave; otherwise the default browser
+for B in "Google Chrome" "Microsoft Edge" "Brave Browser"; do
+  if [ -d "/Applications/$B.app" ] || [ -d "$HOME/Applications/$B.app" ]; then
+    open -na "$B" --args --app="$URL" --user-data-dir="$HOME/Library/Application Support/DnDLedger/$B"
+    exit 0
+  fi
+done
+open "$URL"

@@ -1,0 +1,37 @@
+{
+  "format": "dnd-character",
+  "character": {
+    "name": "Brenna Ashford",
+    "player": "",
+    "race": "Human",
+    "alignment": "Neutral Good",
+    "age": "27",
+    "background": "Soldier",
+    "look": "Tall, cropped red hair, a burn scar on one forearm.",
+    "backstory": "A former caravan guard who left the road after a bandit ambush, now looking for the people who hired the bandits.",
+    "campaign": { "name": "My campaign", "dm": "", "start": "", "notes": "" },
+    "abilities": { "str": 16, "dex": 13, "con": 15, "int": 10, "wis": 12, "cha": 9 },
+    "classes": [ { "cls": "Fighter", "sub": "", "level": 1 } ],
+    "armor": { "name": "Chain mail", "base": 16, "dexCap": 0, "shield": true, "bonus": 0 },
+    "speed": 30,
+    "saveProfs": ["str", "con"],
+    "skillProfs": ["athletics", "intimidation", "perception", "survival"],
+    "armorProf": "All armor, shields",
+    "weapons": "Simple and martial weapons",
+    "tools": "Dice set, vehicles (land)",
+    "languages": "Common, Dwarvish",
+    "fightingStyle": "Defense",
+    "attacks": [
+      { "id": "a-sword", "name": "Longsword", "ability": "str", "ranged": false, "prof": true, "dmg": "1d8", "type": "slashing", "range": "Melee", "props": "Versatile (1d10)", "ammo": "", "magic": 0 },
+      { "id": "a-javelin", "name": "Javelin", "ability": "str", "ranged": false, "prof": true, "dmg": "1d6", "type": "piercing", "range": "Melee, thrown 30/120 ft", "props": "Thrown", "ammo": "", "magic": 0 }
+    ],
+    "inventory": [
+      { "id": "i-jav", "name": "Javelins", "qty": 4, "note": "" },
+      { "id": "i-pack", "name": "Explorer's pack", "qty": 1, "note": "" },
+      { "id": "i-insignia", "name": "Insignia of rank", "qty": 1, "note": "Caravan guard captain" }
+    ],
+    "gold": { "gp": 10, "sp": 0, "cp": 0 },
+    "spells": [],
+    "magicItems": []
+  }
+}

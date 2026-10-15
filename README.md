@@ -1,0 +1,53 @@
+# D&D Ledger
+
+A character sheet and play log for 2014 fifth edition D&D that runs on your own computer. It tracks hit points, spell slots, class resources, conditions, coins, XP and gear while you play, and keeps a history of every session.
+
+What's in it:
+
+- All 12 classes from the 2014 rules plus the Artificer, with slots, resources and multiclassing worked out from your class levels.
+- The free D&D rules (SRD 5.1): about 320 spells and 240 magic items, searchable when you add a spell or item.
+- Subclass names from the core book and the expansions to pick from when you level up.
+- Sessions: open a session, log what happens, close it to get a session entry with totals. Any logged action can be edited or crossed out, and the trackers follow.
+- Backups: export everything to one file, restore it later, and (when you run it with the local server) a dated backup is committed to your repo each time you close a session.
+
+## Get your own copy
+
+1. Fork this repo on GitHub (the **Fork** button at the top right).
+2. Install [GitHub Desktop](https://desktop.github.com), sign in, and clone your fork. On a Mac, clone it into `~/GitHub/` (for example `/Users/you/GitHub/dnd-character-sheet`), not into Documents, Desktop or Downloads. macOS blocks Python from reading those folders.
+3. Start it one of these ways:
+   - **Mac app:** open the `mac` folder and double-click **D&D Ledger**. The first time, right-click it and pick **Open**, because the app isn't signed. To put it in your Dock or Applications, drag it there while holding Option and Command, which makes an alias.
+   - **Any computer with Python 3:** in a terminal, from the repo folder, run `python3 tools/serve.py` and open http://localhost:8790.
+4. On the start screen, create your character or load a file (see below).
+
+Your data is saved in the browser that opens the ledger. The Mac app uses its own Chrome window, so its data is separate from your normal browser. Use **Export backup** on the *Backup & level up* tab to keep a copy or move it to another computer.
+
+## Loading a character from a file
+
+Copy `data/character-template.json`, fill it in, and choose it with **Or load a file** on the start screen. Only `name`, `abilities` and `classes` are required. `data/example-character.json` is a finished level 1 Fighter to look at, and the start screen can load it for you.
+
+The file can also be a backup exported from the ledger.
+
+## Backups to GitHub
+
+When the ledger runs through `tools/serve.py` (the Mac app does this), closing a session saves `backups/<date>-session-<n>.json` and commits it. If your terminal git isn't signed in to GitHub, the commit stays on your computer; push it from GitHub Desktop with **Push origin**.
+
+## Spells, items and subclasses from other books
+
+Only the SRD is built in, because the other books (Xanathar's, Tasha's and so on) are copyrighted and this repo is public. The Artificer's class features and the expansion subclass names are included as mechanics and names only.
+
+To add content from books you own, make a content pack: a JSON file with `"format": "dnd-content-pack"` and any of `spells`, `items`, `features` and `subclasses`. Load it on the *Backup & level up* tab under **Content packs**. It's saved with your character, not in the repo, so don't commit book text. `data/content-pack-example.json` shows every field.
+
+Spell fields: `name`, `lvl` (0 for cantrips), `school`, `time` (`action`, `bonus`, `reaction`, or text like `"10 minutes"`), `range`, `comp`, `dur`, `conc`, `ritual`, `save` (`Str`, `Dex`...), `sum`, `up` (higher levels), `classes`.
+
+## Files
+
+- `index.html`: the whole app.
+- `data/srd-spells.json`, `data/srd-items.json`: SRD content.
+- `tools/serve.py`: the local server (static files plus the backup endpoint).
+- `mac/D&D Ledger.app`: the Mac launcher. It starts the server and opens Chrome, Edge or Brave as an app window, or your default browser.
+
+## Credits and license
+
+This work includes material taken from the System Reference Document 5.1 ("SRD 5.1") by Wizards of the Coast LLC and available at https://dnd.wizards.com/resources/systems-reference-document. The SRD 5.1 is licensed under the Creative Commons Attribution 4.0 International License available at https://creativecommons.org/licenses/by/4.0/legalcode.
+
+The SRD spell and item data was converted from [5e-bits/5e-database](https://github.com/5e-bits/5e-database). Class feature descriptions in the app are short original summaries, not book text.

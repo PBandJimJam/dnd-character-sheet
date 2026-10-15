@@ -1,0 +1,39 @@
+{
+  "format": "dnd-character",
+  "_about": "Fill this in and load it from the start screen (Or load a file). Only name, abilities and classes are required; everything else can be added later on the Sheet tab. Delete any field you don't need. Class names: Artificer, Barbarian, Bard, Cleric, Druid, Fighter, Monk, Paladin, Ranger, Rogue, Sorcerer, Warlock, Wizard. Skill ids: acrobatics, animalHandling, arcana, athletics, deception, history, insight, intimidation, investigation, medicine, nature, perception, performance, persuasion, religion, sleightOfHand, stealth, survival. Spells can be names of built-in spells written as ids (\"magic-missile\") or full objects. Leave out hpRolls and set maxHP to your sheet's max HP.",
+  "character": {
+    "name": "Your character's name",
+    "player": "",
+    "race": "",
+    "size": "Medium",
+    "alignment": "",
+    "age": "",
+    "background": "",
+    "look": "",
+    "backstory": "",
+    "campaign": { "name": "", "dm": "", "start": "", "notes": "" },
+    "abilities": { "str": 10, "dex": 10, "con": 10, "int": 10, "wis": 10, "cha": 10 },
+    "classes": [ { "cls": "Fighter", "sub": "", "level": 1 } ],
+    "maxHP": 10,
+    "xp": 0,
+    "armor": { "name": "None", "base": 10, "dexCap": null, "shield": false, "bonus": 0 },
+    "speed": 30,
+    "saveProfs": [],
+    "skillProfs": [],
+    "expertise": [],
+    "armorProf": "",
+    "weapons": "",
+    "tools": "",
+    "languages": "Common",
+    "attacks": [
+      { "name": "Dagger", "ability": "dex", "ranged": false, "prof": true, "dmg": "1d4", "type": "piercing", "range": "Melee, thrown 20/60 ft", "props": "Finesse, light, thrown", "ammo": "", "magic": 0 }
+    ],
+    "spells": [],
+    "inventory": [ { "name": "Backpack", "qty": 1, "note": "" } ],
+    "gold": { "gp": 0, "sp": 0, "cp": 0 },
+    "magicItems": [ { "name": "Example item", "rarity": "Uncommon", "status": "Carried", "note": "" } ],
+    "customFeatures": [ { "name": "Example feature", "source": "Race", "text": "What it does, in your own words." } ],
+    "customResources": [ { "id": "r-example", "name": "Potion of Healing", "max": 1, "rec": "never" } ],
+    "levelPlan": []
+  }
+}
