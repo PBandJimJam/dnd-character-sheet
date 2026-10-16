@@ -51,7 +51,7 @@ class Index:
     """Everything the loaded packs define, for reference checks."""
     def __init__(self):
         self.ids = {k: set() for k in ("classes", "subclasses", "races", "backgrounds", "feats", "optionSets", "spells", "items", "creatures")}
-        self.resources, self.toggles, self.choices = set(), set(), set()
+        self.resources, self.toggles, self.choices = {"pact"}, set(), set()  # the app makes the pact-slot resource itself
         self.columns = {}
 
     def add_pack(self, pack):

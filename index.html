@@ -276,6 +276,8 @@ function addPack(p,src){
   const pid=slug(p.id||p.name||src||"pack")||"pack";const abbr=(p.source&&p.source.abbr)||p.name||pid;
   const info={id:pid,name:p.name||pid,src:src,counts:{}};R.byPack[pid]={};
   const put=(coll,e)=>{const id=slug(e.id||e.name||"");if(!id)return;e=Object.assign({},e,{id:id,name:e.name||id,_pack:pid,_src:abbr});
+    // Option lists (invocations, fighting styles, maneuvers…) grow across books instead of replacing each other.
+    if(coll==="optionSets"&&R.optionSets[id]){const opts=(R.optionSets[id].options||[]).slice();(e.options||[]).forEach(o=>{const oid=o.id||slug(o.name);const i=opts.findIndex(x=>(x.id||slug(x.name))===oid);if(i>=0)opts[i]=o;else opts.push(o)});e.options=opts}
     (R.byPack[pid][coll]=R.byPack[pid][coll]||{})[id]=e;R[coll][id]=e;info.counts[coll]=(info.counts[coll]||0)+1};
   entriesOf(p.features).forEach(f=>{if(f.name)R.featureText[f.name]=f.text||f.sum||""});
   entriesOf(p.classes).forEach(c=>put("classes",c.hitDie?c:v1Class(c)));

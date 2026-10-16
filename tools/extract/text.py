@@ -35,6 +35,8 @@ def norm(t):
 
 
 def is_heading(s, names):
+    if re.match(r"^\s*\d{1,2}\s*(st|nd|rd|th)\b", s):  # a row of a level table ("10th Zealous Presence")
+        return False
     n = norm(s)
     return bool(n) and len(s) <= 48 and any(n == norm(x) or difflib.SequenceMatcher(None, n, norm(x)).ratio() > 0.86 for x in names)
 
@@ -82,8 +84,8 @@ def _section(book, first, last, heading, stops=(), limit=2400, after=None):
             if sum(len(x) for x in body) > limit:
                 break
         text = join(body)
-        # headings run into the first sentence ("Spell Thief. At 17th level...")
-        return ocr.clean(text).strip() if text else None
+        if len(text) > 40:  # a short hit is a table entry; keep looking for the real heading
+            return ocr.clean(text).strip()
     return None
 
 

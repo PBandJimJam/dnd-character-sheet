@@ -190,7 +190,7 @@ Every collection is optional. Every entry can carry `page` (and `source` when it
 
 `spellEffects` adds effects to spells defined elsewhere, keyed by spell id, so a pack can make the SRD's *mage armor* change AC without repeating its text: `{"mage-armor": [{"type": "acFormula", "formula": "13 + mod.dex", "when": "unarmored"}]}`.
 
-The app always loads `data/srd-spells.json`, `data/srd-items.json` and `data/base-pack.json` (the built-in classes, races and gear), then every `.json` pack in `packs/`, then packs loaded on the *Backup & level up* tab. A later pack overrides an earlier one with the same id.
+The app always loads `data/srd-spells.json`, `data/srd-items.json` and `data/base-pack.json` (the built-in classes, races and gear), then every `.json` pack in `packs/`, then packs loaded on the *Backup & level up* tab. A later pack overrides an earlier one with the same id, except option sets, which merge: a book that adds invocations or maneuvers lists only its new options.
 
 ### Feature
 
