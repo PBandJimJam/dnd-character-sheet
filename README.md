@@ -39,6 +39,18 @@ To add content from books you own, make a content pack: a JSON file with `"forma
 
 Spell fields: `name`, `lvl` (0 for cantrips), `school`, `time` (`action`, `bonus`, `reaction`, or text like `"10 minutes"`), `range`, `comp`, `dur`, `conc`, `ritual`, `save` (`Str`, `Dex`...), `sum`, `up` (higher levels), `classes`.
 
+## Packs from your own books
+
+`tools/extract/` turns PDFs of books you own into content packs in `packs/`, which git ignores, so book text never reaches the repo. It needs `pip3 install --user pypdf jsonschema`.
+
+```
+python3 tools/extract/pdf_text.py "Player's Handbook.pdf" phb   # page text into packs/.text/phb
+python3 tools/extract/build_pack.py phb                         # packs/phb.json
+python3 tools/validate.py data/base-pack.json packs/phb.json    # check it
+```
+
+The local server loads every pack in `packs/` on start. Books with a definitions file in `tools/extract/books/` (races, feats, subclasses and their mechanics) get those too; the others get their spells. Scanned PDFs without a text layer need OCR first.
+
 ## Files
 
 - `index.html`: the whole app.
