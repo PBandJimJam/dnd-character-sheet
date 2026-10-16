@@ -1733,10 +1733,16 @@ function companionsCard(){const cs=C.companions||[];
    ${cs.length?cs.map(p=>{const cr=p.creature&&ref("creatures",p.creature);const mx=p.maxHp||(cr&&cr.hp&&cr.hp.average)||0;return `<div class="feat"><b>${esc(p.name||(cr&&cr.name)||"Companion")}</b>${cr?` <span class="tag">${esc(cr.name)}</span>`:""}
      ${mx?` <span class="row" style="display:inline-flex;gap:2px"><button class="btn small ghost" data-chp="${esc(p.id)}" data-d="-1">−</button><b class="num">${p.hp!=null?p.hp:mx}/${mx} HP</b><button class="btn small ghost" data-chp="${esc(p.id)}" data-d="1">+</button></span>`:""} <button class="btn small ghost" data-rmcomp="${esc(p.id)}">Remove</button>
      ${p.note?`<p>${esc(p.note)}</p>`:""}
-     ${cr?`<details><summary class="muted" style="font-size:.82rem">Stat block</summary><p style="font-size:.84rem">${esc([cr.size,cr.type,cr.alignment].filter(Boolean).join(" "))} · AC ${esc(cr.ac)} · HP ${esc(cr.hp?cr.hp.average+" ("+cr.hp.dice+")":"")} · ${esc(cr.speed||"")}</p>
-       ${cr.abilities?`<p class="num" style="font-size:.82rem">${ABIL.map(([k])=>k.toUpperCase()+" "+cr.abilities[k]+" ("+sg(mod(cr.abilities[k]))+")").join(" · ")}</p>`:""}${[cr.saves,cr.skills,cr.senses,cr.languages].filter(Boolean).map(x=>`<p class="muted" style="font-size:.8rem">${esc(x)}</p>`).join("")}
-       ${[].concat(cr.traits||[],cr.actions||[],cr.reactions||[]).map(t=>`<p style="font-size:.84rem"><b>${esc(t.name)}.</b> ${esc(t.text)}</p>`).join("")}</details>`:""}</div>`}).join(""):'<p class="muted" style="margin:0;font-size:.85rem">Familiars, animal companions, summoned or raised creatures.</p>'}
+     ${cr?`<details><summary class="muted" style="font-size:.82rem">Stat block${cr._src?" · "+esc(cr._src):""}</summary>${statBlock(cr)}</details>`:""}</div>`}).join(""):'<p class="muted" style="margin:0;font-size:.85rem">Familiars, animal companions, summoned or raised creatures.</p>'}
   </section>`}
+function statBlock(cr){
+  const line=(l,v)=>v?`<p style="font-size:.82rem;margin:2px 0"><b>${l}</b> ${esc(v)}</p>`:"";const ents=(h,xs)=>xs&&xs.length?(h?`<div class="label" style="margin-top:6px">${h}</div>`:"")+xs.map(t=>`<p style="font-size:.84rem;margin:3px 0"><b>${esc(t.name)}.</b> ${esc(t.text)}</p>`).join(""):"";
+  return `<p class="muted" style="font-size:.82rem;margin:4px 0">${esc([cr.size,cr.type].filter(Boolean).join(" "))}${cr.alignment?", "+esc(cr.alignment):""}</p>
+   ${line("Armor Class",cr.ac!=null?cr.ac+(cr.acNote?" ("+cr.acNote+")":""):"")}${line("Hit Points",cr.hp?cr.hp.average+(cr.hp.dice?" ("+cr.hp.dice+")":""):"")}${line("Speed",cr.speed)}
+   ${cr.abilities?`<p class="num" style="font-size:.82rem;margin:4px 0">${ABIL.map(([k])=>cr.abilities[k]!=null?k.toUpperCase()+" "+cr.abilities[k]+" ("+sg(mod(cr.abilities[k]))+")":"").filter(Boolean).join(" · ")}</p>`:""}
+   ${line("Saving Throws",cr.saves)}${line("Skills",cr.skills)}${line("Damage Vulnerabilities",cr.vulnerabilities)}${line("Damage Resistances",cr.resistances)}${line("Damage Immunities",cr.immunities)}${line("Condition Immunities",cr.conditionImmunities)}
+   ${line("Senses",cr.senses)}${line("Languages",cr.languages)}${line("Challenge",cr.cr)}
+   ${ents("",cr.traits)}${ents("Actions",cr.actions)}${ents("Reactions",cr.reactions)}${ents("Legendary actions",cr.legendary)}`}
 function editAttack(id){
   const a=id?(C.attacks||[]).find(x=>x.id===id):{id:"a"+uid(),name:"",ability:"dex",ranged:true,prof:true,dmg:"1d6",type:"piercing",range:"",props:"",ammo:"",magic:0};
   openModal(`<h2>${id?"Edit":"Add"} attack</h2>
@@ -1856,9 +1862,11 @@ function bindSheet(v){
      <div class="modal-f"><button class="btn" data-close>Cancel</button><button class="btn primary" id="ov-ok">Save</button></div>`,m=>{
       m.querySelector("#ov-ok").onclick=()=>{keys.forEach(([k])=>{const s=m.querySelector("#ov-"+k).value.trim();if(s===""||isNaN(+s))delete C.overrides[k];else C.overrides[k]=parseInt(s)});ST.hp=Math.min(ST.hp,maxHP(C));saveChar();saveState();closeModal();render()}})});
   on("#sh-comp",()=>{const crs=Object.values(R.creatures).sort((a,b)=>a.name.localeCompare(b.name));
-    openModal(`<h2>Add a companion</h2><div class="field"><span class="label">Creature</span><select id="cp-c"><option value="">Not in my packs</option>${crs.map(c=>`<option value="${esc(c.id)}">${esc(c.name)}${c.cr!=null?" (CR "+esc(c.cr)+")":""}</option>`).join("")}</select></div>
+    openModal(`<h2>Add a companion</h2><div class="field"><span class="label">Search ${crs.length} creatures</span><input id="cp-q" autocomplete="off" placeholder="Name, type or CR"></div><div class="field"><span class="label">Creature</span><select id="cp-c" size="6" style="min-height:140px"><option value="">Not in my packs</option>${crs.map(c=>`<option value="${esc(c.id)}" data-s="${esc((c.name+" "+(c.type||"")+" cr"+(c.cr||"")).toLowerCase())}">${esc(c.name)}${c.cr!=null?" (CR "+esc(c.cr)+")":""}</option>`).join("")}</select></div><div id="cp-prev"></div>
      <div class="fgrid"><div class="field"><span class="label">Name</span><input id="cp-n" autocomplete="off"></div><div class="field"><span class="label">Max HP</span><input id="cp-hp" class="num" placeholder="from stat block"></div></div>
      <div class="field"><span class="label">Note</span><input id="cp-t" autocomplete="off" placeholder="Familiar, raised with Animate Dead…"></div><div class="modal-f"><button class="btn" data-close>Cancel</button><button class="btn primary" id="cp-ok">Add</button></div>`,m=>{
+      const sel=m.querySelector("#cp-c");m.querySelector("#cp-q").oninput=e=>{const t=e.target.value.trim().toLowerCase();[...sel.options].forEach(o=>{if(o.value)o.hidden=!!t&&!o.dataset.s.includes(t)})};
+      sel.onchange=()=>{const c=ref("creatures",sel.value);m.querySelector("#cp-prev").innerHTML=c?`<details open><summary class="muted" style="font-size:.82rem">${esc(c.name)}</summary>${statBlock(c)}</details>`:""};
       m.querySelector("#cp-ok").onclick=()=>{const cr=m.querySelector("#cp-c").value;const n=m.querySelector("#cp-n").value.trim()||(cr&&ref("creatures",cr).name);if(!n){toast("Give it a name.");return}
         const p={id:"p"+uid(),name:n,note:m.querySelector("#cp-t").value.trim()};if(cr)p.creature=cr;const mh=parseInt(m.querySelector("#cp-hp").value);if(mh>0)p.maxHp=mh;
         C.companions.push(p);saveChar();closeModal();log("note","New companion: "+n,p.note,null)}})});

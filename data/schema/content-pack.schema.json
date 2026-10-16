@@ -1546,6 +1546,21 @@
             "number"
           ]
         },
+        "acNote": {
+          "type": "string"
+        },
+        "vulnerabilities": {
+          "type": "string"
+        },
+        "resistances": {
+          "type": "string"
+        },
+        "immunities": {
+          "type": "string"
+        },
+        "conditionImmunities": {
+          "type": "string"
+        },
         "traits": {
           "type": "array",
           "items": {
@@ -1585,6 +1600,25 @@
           }
         },
         "reactions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "text"
+            ]
+          }
+        },
+        "legendary": {
           "type": "array",
           "items": {
             "type": "object",

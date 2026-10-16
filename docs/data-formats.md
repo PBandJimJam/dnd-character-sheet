@@ -266,7 +266,7 @@ The version 1 fields stay (`name`, `rarity`, `type`, `attune`, `text`). New:
 
 For familiars, summons, animated dead and wild shapes. The app shows a compact stat block; only the basics are read.
 
-`id`, `name`, `size`, `type`, `alignment`, `ac`, `hp` (`{"average": 13, "dice": "2d8 + 4"}`), `speed`, `abilities`, `saves`, `skills`, `senses`, `languages`, `cr`, `traits`, `actions`, `reactions` (each a list of `{"name", "text"}`).
+`id`, `name`, `size`, `type`, `alignment`, `ac` (and `acNote`, like "natural armor"), `hp` (`{"average": 13, "dice": "2d8 + 4"}`), `speed`, `abilities`, `saves`, `skills`, `vulnerabilities`, `resistances`, `immunities`, `conditionImmunities`, `senses`, `languages`, `cr`, and `traits`, `actions`, `reactions`, `legendary` (each a list of `{"name", "text"}`).
 
 ## Character file
 

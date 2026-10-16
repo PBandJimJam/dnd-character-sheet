@@ -22,6 +22,7 @@ BOOKS = {
     "mpmm": {"name": "Mordenkainen Presents: Monsters of the Multiverse", "abbr": "MPMM"},
     "ftd": {"name": "Fizban's Treasury of Dragons", "abbr": "FTD", "spells": (19, 25)},
     "dmg": {"name": "Dungeon Master's Guide", "abbr": "DMG"},
+    "mm": {"name": "Monster Manual", "abbr": "MM"},
 }
 
 
