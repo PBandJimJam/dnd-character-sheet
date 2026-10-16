@@ -44,12 +44,14 @@ Spell fields: `name`, `lvl` (0 for cantrips), `school`, `time` (`action`, `bonus
 `tools/extract/` turns PDFs of books you own into content packs in `packs/`, which git ignores, so book text never reaches the repo. It needs `pip3 install --user pypdf jsonschema`.
 
 ```
-python3 tools/extract/pdf_text.py "Player's Handbook.pdf" phb   # page text into packs/.text/phb
+tools/extract/ocr_pdf.sh "Player's Handbook.pdf" phb            # page text into packs/.text/phb
 python3 tools/extract/build_pack.py phb                         # packs/phb.json
 python3 tools/validate.py data/base-pack.json packs/phb.json    # check it
 ```
 
-The local server loads every pack in `packs/` on start. Books with a definitions file in `tools/extract/books/` (races, feats, subclasses and their mechanics) get those too; the others get their spells. For a scanned PDF with no text layer, run `tools/extract/ocr_pdf.sh "<book>.pdf" <book-id>` instead of `pdf_text.py`. It uses macOS's built-in text recognition, so there's nothing to install.
+The local server loads every pack in `packs/` on start. Books with a definitions file in `tools/extract/books/` (races, feats, subclasses and their mechanics) get those too; the others get their spells.
+
+`ocr_pdf.sh` reads the pages with macOS's built-in text recognition, so there's nothing to install, and takes about a second a page. It gives much cleaner text than the PDFs' own text layers, which split words apart ("magi ca l") and mix up digits and letters. It leaves out handwritten margin notes and sideways art credits, and lists them in `packs/.text/<book>/dropped.txt`. Off a Mac, `python3 tools/extract/pdf_text.py "<book>.pdf" <book-id>` pulls the text layer instead. To compare two extractions, write the new one to another folder (`ocr_pdf.sh "<book>.pdf" phb-new`) and build from it with `PACK_TEXT=phb=phb-new python3 tools/extract/build_pack.py phb`.
 
 ## Files
 

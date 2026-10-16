@@ -19,11 +19,11 @@ def lines(book, first, last):
     if key not in _cache:
         out = []
         for p in range(first, last + 1):
-            f = os.path.join(ROOT, "packs", ".text", book, "p%04d.txt" % p)
+            f = ocr.page_file(book, p)
             if os.path.exists(f):
                 for ln in open(f, encoding="utf-8").read().split("\n"):
                     s = ln.strip()
-                    if not s or re.fullmatch(r"\d{1,3}", s) or re.match(r"^(CHAPTER \d|PART \d)", s, re.I):
+                    if not s or re.fullmatch(r"\d{1,3}", s) or re.match(r"^(\d{1,3}\s+)?(CHAPTER \d|PART \d)", s, re.I) or ocr.FOOTER_LINE.match(s):
                         continue
                     out.append((p, s))
         _cache[key] = out
@@ -70,14 +70,21 @@ def _section(book, first, last, heading, stops=(), limit=2400, after=None):
             if is_heading(s, [after]):
                 start = i + 1
                 break
-    for i in range(start, len(ls)):
+    hits = [i for i in range(start, len(ls)) if is_heading(ls[i][1], [heading]) or run_in(ls[i][1], [heading]) is not None]
+    runin = [i for i in hits if not is_heading(ls[i][1], [heading]) and (i == 0 or not re.search(r"[a-z,;]$", ls[i - 1][1]))]  # not a wrapped sentence ("... ki point for / Hand of Harm. You")
+    caps = [i for i in hits if i not in runin and ls[i][1].isupper()]
+    hits = runin + caps + [i for i in hits if i not in runin and i not in caps]  # "Draconic Ancestry. You ..." or the heading, before a table row or title
+    for i in hits:
         rest = None
         if not is_heading(ls[i][1], [heading]):
             rest = run_in(ls[i][1], [heading])
-            if rest is None:
-                continue
         body = [rest] if rest else []
-        for _, s in ls[i + 1:]:
+        for k in range(i + 1, len(ls)):
+            s = ls[k][1]
+            if body and capitals(s):
+                after = next((x for _, x in ls[k + 1:k + 4] if not capitals(x)), "")
+                if after.startswith("•") or (after[:1].islower() and not re.search(r"[.!?:]$", body[-1])):
+                    continue  # a caption in capitals between a sentence and its next words, or between list items
             if is_heading(s, list(stops)) or run_in(s, list(stops)) is not None or (s.isupper() and len(s) > 4 and not re.search(r"\d", s)):
                 break
             if body and new_heading(s, body[-1]):  # the next section ("Arcane Shot Options", a table title, lore)
@@ -91,9 +98,14 @@ def _section(book, first, last, heading, stops=(), limit=2400, after=None):
             if sum(len(x) for x in body) > limit:
                 break
         text = trim(strip_footers(join(body)), limit)
-        if len(text) > 40:  # a short hit is a table entry; keep looking for the real heading
+        if len(text) > 40 or (rest and len(text) > 20):  # a short hit is a table entry, unless it's a run-in ("Necrotic Resistance. You ...")
             return ocr.clean(text).strip()
     return None
+
+
+def capitals(s):
+    letters = [c for c in s if c.isalpha()]
+    return len(letters) >= 4 and sum(c.isupper() for c in letters) >= 0.75 * len(letters)
 
 
 FOOTER = re.compile(r"\s*\b\d{0,3}\s*(?i:chapter|part|appendix)\s*\d*\s*[|I/\\:]\s*[A-Z][A-Z,'’&-]*(?: [A-Z][A-Z,'’&-]*)*\b(?:\s*\d{1,3}\b)?")

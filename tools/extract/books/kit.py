@@ -16,9 +16,11 @@ class Book:
         """First page where `title` is a heading line, or None."""
         ls = T.lines(self.book, self.first, self.last)
         hits = [i for i, (p, s) in enumerate(ls) if p >= self.body and T.is_heading(s, [title])]
-        for i in hits:  # a real heading is followed by prose, a list entry by more short lines
-            if any(len(s) > 40 for _, s in ls[i + 1:i + 3]):
-                return ls[i][0]
+        prose = [i for i in hits if any(len(s) > 40 for _, s in ls[i + 1:i + 3])]  # a list entry is followed by more short lines
+        caps = [i for i in prose if ls[i][1].isupper()]  # the heading in capitals before a table row ("College of Glamour", "3rd", a blurb)
+        table = [i for i, (p, s) in enumerate(ls) if p >= self.body and s.isupper() and T.is_heading(s, [title + " Features"])]
+        for i in caps + table + prose:  # a decorative heading the scan misreads ("SaouT") still has its "SCOUT FEATURES" table
+            return ls[i][0]
         return ls[hits[0]][0] if hits else None
 
     def fill(self, feats, title=None, span=6, stops=(), limit=2400):

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Turn a book's stat blocks (text from pdf_text.py) into content-pack creatures.
+"""Turn a book's stat blocks (text from ocr_pdf.sh or pdf_text.py) into content-pack creatures.
 
 A stat block starts with a name in capitals, then "Size type, alignment", then
 Armor Class. Ability scores come out of the scans interleaved with other lines, so
@@ -15,13 +15,14 @@ import ocr
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SIZES = "Tiny|Small|Medium|Large|Huge|Gargantuan"
 TYPE_RE = re.compile(r"^\s*(%s)\b\s*(.*?)\s*,\s*(.*)$" % SIZES, re.I)
-AC_RE = re.compile(r"^\s*Armor\s*C\s*l?\s*a?\s*s?\s*s?\s*(\d+)\s*(\(.*\))?", re.I)
-FIELDS = [("hp", r"Hit\s*Points?"), ("speed", r"Speed"), ("saves", r"Saving\s*Throws?"), ("skills", r"Skills?"),
+AC_RE = re.compile(r"^\s*Armor\s*C\s*l?\s*a?\s*s?\s*s?\s*(\d[0-9lIO]?)\s*,?\s*(\(.*\))?", re.I)
+FIELDS = [("hp", r"Hit\s*Po[il1]nts?"), ("speed", r"Speed"), ("saves", r"Saving\s*Throws?"), ("skills", r"Skills?"),
           ("vulnerabilities", r"Damage\s*Vulnerabilit\w*"), ("resistances", r"Damage\s*Resistances?"), ("immunities", r"Damage\s*Immunit\w*"),
           ("conditionImmunities", r"Condition\s*Immunit\w*"), ("senses", r"Senses?"), ("languages", r"Languages?"), ("cr", r"Challenge")]
 FIELD_RE = [(k, re.compile(r"^\s*" + p + r"\b\s*(.*)$", re.I)) for k, p in FIELDS]
 ABIL_LABEL = re.compile(r"^\s*(STR|DEX|CON|INT|WIS|CHA)\s*$")
 ABIL_VALUE = re.compile(r"^\s*(\d{1,2})\s*\(\s*[+\-−–]?\s*\d+\s*\)\s*$")
+ABIL_ROW = re.compile(r"(\s*[0-9lIO]{1,2}\s*\(\s*[+\-−–]?\s*[0-9lIO]*\s*\)+\s*[.,'•·]?)+\s*")  # specks between scores: "15 (+2). 11 (+0)"
 SECTION = {"ACTIONS": "actions", "BONUS ACTIONS": "bonusActions", "REACTIONS": "reactions", "LEGENDARY ACTIONS": "legendary", "MYTHIC ACTIONS": "legendary"}
 SMALL = {"of", "the", "and", "in", "with", "a", "an", "to", "or", "on", "from"}
 
@@ -54,6 +55,24 @@ def run_in(s):
 
 def num(v):
     return int(v.replace("l", "1").replace("I", "1").replace("O", "0"))
+
+
+OPENERS = {"however", "otherwise", "additionally", "instead", "afterward", "meanwhile", "similarly", "likewise", "finally", "furthermore", "alternatively"}
+MISREAD = {"1": "7", "7": "1", "3": "8", "8": "3", "6": "8", "5": "6", "0": "8", "4": "1"}
+
+
+def scores(s):
+    """Scores from '16 (+3) 15 (+2) ... 17 (+0)'. A score that disagrees with its modifier is a misread
+    digit (11 read as 17); the one-digit change that agrees wins."""
+    out = []
+    for v, sign, m in re.findall(r"([0-9lIO]{1,2})\s*\(\s*([+\-−–]?)\s*([0-9lIO]*)\s*\)", s):
+        v, mod = num(v), num(m) * (-1 if sign and sign != "+" else 1) if m else None  # "9 (-))": the modifier is lost
+        if mod is not None and (v - 10) // 2 != mod:
+            fixes = [int(str(v)[:i] + b + str(v)[i + 1:]) for i, a in enumerate(str(v)) for b in MISREAD.get(a, "")]
+            fixes = [f for f in fixes if 1 <= f <= 30 and (f - 10) // 2 == mod]
+            v = fixes[0] if fixes else v
+        out.append(v)
+    return out
 
 
 def fix_dice(t):
@@ -148,13 +167,16 @@ def heading_name(lines, i, known):
 def parse(book, first, last):
     lines = []
     for p in range(first, last + 1):
-        f = os.path.join(ROOT, "packs", ".text", book, "p%04d.txt" % p)
+        f = ocr.page_file(book, p)
         if not os.path.exists(f):
             continue
         for ln in open(f, encoding="utf-8").read().split("\n"):
             s = ln.strip()
-            if not s or re.fullmatch(r"\d{1,3}", s):
+            if not s or re.fullmatch(r"\d{1,3}", s) or ocr.FOOTER_LINE.match(s):
                 continue
+            bare = re.sub(r"^[•*·>'\"“”‘’`.,]+\s*", "", s)  # a speck the scan read before a field ("•Armor Class 12")
+            if bare != s and (TYPE_RE.match(bare) or AC_RE.match(bare) or any(rx.match(bare) for _, rx in FIELD_RE) or ABIL_ROW.fullmatch(bare)):
+                s = bare
             lines.append((p, s))
     import difflib
     sq = lambda x: re.sub(r"[^a-z]", "", x.lower().replace("1", "l").replace("0", "o"))
@@ -172,7 +194,7 @@ def parse(book, first, last):
     starts, names, how = [], {}, {}
     for i in range(1, len(lines) - 2):
         # No type line (the zombie's block starts at Armor Class): treat the AC line as the start.
-        if AC_RE.match(lines[i][1]) and not TYPE_RE.match(lines[i - 1][1]) and re.match(r"^\s*Hit\s*Points", lines[i + 1][1], re.I):
+        if AC_RE.match(lines[i][1]) and not TYPE_RE.match(lines[i - 1][1]) and re.match(r"^\s*Hit\s*Po[il1]nts", lines[i + 1][1], re.I):
             nm = next((known_name(x) for _, x in lines[max(0, i - 3):i] if known_name(x)), None) or self_named(lines, i, keys, canon, sq)
             if nm:
                 lines.insert(i, (lines[i][0], "Medium creature, unaligned"))  # placeholder type line
@@ -200,7 +222,7 @@ def parse(book, first, last):
         if names[i] not in canon and "(CR" not in names[i] and sum(len(w) <= 2 for w in words) > len(words) / 3:  # letters split apart by the scan
             parts = ocr.segment(re.sub(r"[^a-z]", "", raw.lower()))
             name = " ".join(parts).title() if parts else name
-        name = re.sub(r"\b(Of|The|And|In)\b", lambda m: m.group(1).lower(), name)
+        name = re.sub(r"(?<=\s)(Of|The|And|In)\b", lambda m: m.group(1).lower(), name)  # but "The Lonely" keeps its capital
         c["name"], c["id"], c["_how"] = name, slug(name), how.get(i, "direct")
         labels, values, fields, cur, j = [], [], {}, None, i + 2
         # fields and abilities until the first trait/action entry after Challenge
@@ -208,13 +230,12 @@ def parse(book, first, last):
             s = lines[j][1]
             am = AC_RE.match(s)
             if am and "ac" not in c:
-                c["ac"] = int(am.group(1)); c["acNote"] = (am.group(2) or "").strip("() "); cur = None; j += 1; continue
+                c["ac"] = num(am.group(1)); c["acNote"] = (am.group(2) or "").strip("() "); cur = None; j += 1; continue
             labs = re.findall(r"\b(STR|DEX|CON|INT|WIS|CHA)\b", s)
             if labs and re.fullmatch(r"(\s*(STR|DEX|CON|INT|WIS|CHA)\b)+\s*", s):  # one label, or all six on a line
                 labels += labs; cur = None; j += 1; continue
-            vals = re.findall(r"([0-9lIO]{1,2})\s*\(\s*[+\-−–]?\s*[0-9lIO]+\s*\)", s)
-            if vals and re.fullmatch(r"(\s*[0-9lIO]{1,2}\s*\(\s*[+\-−–]?\s*[0-9lIO]+\s*\))+\s*", s):
-                values += [num(v) for v in vals]; cur = None; j += 1; continue
+            if ABIL_ROW.fullmatch(s):
+                values += scores(s); cur = None; j += 1; continue
             hit = next(((k, m) for k, rx in FIELD_RE for m in [rx.match(s)] if m), None)
             if hit:
                 cur = hit[0]; fields[cur] = hit[1].group(1); j += 1; continue
@@ -231,8 +252,8 @@ def parse(book, first, last):
                 t = lines[k][1]
                 if re.fullmatch(r"(\s*(STR|DEX|CON|INT|WIS|CHA)\b)+\s*", t):
                     labels += re.findall(r"\b(STR|DEX|CON|INT|WIS|CHA)\b", t); skip.add(k)
-                elif re.fullmatch(r"(\s*[0-9lIO]{1,2}\s*\(\s*[+\-−–]?\s*[0-9lIO]+\s*\))+\s*", t):
-                    values += [num(v) for v in re.findall(r"([0-9lIO]{1,2})\s*\(", t)]; skip.add(k)
+                elif ABIL_ROW.fullmatch(t):
+                    values += scores(t); skip.add(k)
                 if len(values) >= 6:
                     break
         if len(values) >= 6:
@@ -245,10 +266,11 @@ def parse(book, first, last):
         for k in ("speed", "saves", "skills", "vulnerabilities", "resistances", "immunities", "conditionImmunities", "senses", "languages"):
             if fields.get(k):
                 c[k] = ocr.clean(re.sub(r"\s+", " ", fields[k])).replace(" ft .", " ft.").replace("ft.", " ft.").replace("  ", " ").strip(" .")
-        crm = re.match(r"\s*([\d/]+)", fields.get("cr", "").replace("I", "1").replace("l", "1"))
+        crm = re.match(r"\s*([\d/]+)", re.sub(r"^\s*O\b", "0", fields.get("cr", "")).replace("I", "1").replace("l", "1"))
         if crm:
             c["cr"] = crm.group(1)
         # traits, then sections
+        caption = False
         sect, entries = "traits", {"traits": [], "actions": [], "bonusActions": [], "reactions": [], "legendary": []}
         while j < end:
             s = lines[j][1]
@@ -257,11 +279,19 @@ def parse(book, first, last):
             sn = section_name(s)
             if sn:
                 sect = sn; j += 1; continue
+            letters = [ch for ch in s if ch.isalpha()]
+            if len(s) > 30 and len(letters) > 20 and sum(ch.isupper() for ch in letters) >= 0.9 * len(letters) or (caption and capsy(s)):
+                caption = True; j += 1; continue  # a quote in capitals across the page ("DEMONS ARE PAINFULLY DIFFICULT TO SUMMON ...")
+            caption = False
             ri = run_in(s)
+            prev = entries[sect][-1][1][-1] if entries[sect] else "."
+            if not ri and re.search(r"[.!?:]\s*$", prev):  # the scan read the name's period as a comma ("Shapechanger, If the vampire ...")
+                ri = run_in(re.sub(r"^([A-Z][A-Za-z'’ -]{5,40}?),(?= [A-Z])", r"\1.", s))
+                ri = ri if ri and ri[0].lower() not in OPENERS else None
             if ri:
                 entries[sect].append([ri[0], [ri[1]]])
             elif entries[sect]:
-                if capsy(s) and len(s) > 12:  # a lore heading: the block is over
+                if capsy(s) and (len(s) > 12 or known_name(s)):  # a lore heading or the next creature's name: the block is over
                     break
                 entries[sect][-1][1].append(s)
             elif sect == "legendary":

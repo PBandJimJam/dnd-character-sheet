@@ -6,6 +6,20 @@ A word that isn't in the dictionary is retried with the swaps these scans make
 """
 import functools, os, re
 
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+
+# A running footer on its own line: "PART 1 | CLASSES", "56 CHAPTER 1 | CHARACTER OPTIONS", "APPENDIX B: NONPLAYER
+# CHARACTERS", including scans that read the digit or the bar as I ("PART I I CLASSES").
+FOOTER_LINE = re.compile(r"^(\d{1,3}\s+)?(CHAPTER\s*[\dIl]{1,2}|PART\s*[\dIl]{1,2}|APPENDIX\s*[A-Z]{1,2})\b(\s*[|I/:]?\s*[A-Z][A-Z ,'’&-]*)?(\s*\d{1,3})?$")
+
+
+def page_file(book, p):
+    """packs/.text/<book>/pNNNN.txt. PACK_TEXT="xge=xge-ocr,phb=phb-ocr" reads another folder
+    instead, to compare a re-extraction with the current text before replacing it."""
+    alt = dict(x.split("=", 1) for x in os.environ.get("PACK_TEXT", "").split(",") if "=" in x)
+    return os.path.join(ROOT, "packs", ".text", alt.get(book, book), "p%04d.txt" % p)
+
 GAME_WORDS = """
 cantrip cantrips spellcasting spellcaster spellcasters ritual rituals concentration darkvision blindsight tremorsense truesight
 d4 d6 d8 d10 d12 d20 1d4 1d6 1d8 1d10 1d12 1d20 2d6 hp ac dc gp sp cp pp ep str dex con int wis cha
@@ -15,6 +29,8 @@ rogue rogues monk monks barbarian barbarians artificer artificers multiclass mul
 humanoid humanoids undead fiend fiends fey celestial celestials elemental elementals aberration aberrations construct constructs ooze oozes
 dragonborn tiefling tieflings gnome gnomes halfling halflings dwarf dwarves dwarven elf elves elven half-elf half-orc kenku tabaxi firbolg aasimar genasi goliath
 ki psionic infusion infusions invocation invocations metamagic eldritch arcana feywild shadowfell
+multiattack shapechanger teleport echolocation flyby antimagic goblinoid goblinoids coven covens
+longsword shortsword greatsword greataxe greatclub battleaxe warhammer morningstar shortbow longbow handaxe
 """.split()
 
 

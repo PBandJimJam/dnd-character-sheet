@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Turn a book's magic item chapter (text from pdf_text.py) into content-pack items.
+"""Turn a book's magic item chapter (text from ocr_pdf.sh or pdf_text.py) into content-pack items.
 
 An item starts where a name line in capitals is followed by its type line
 ("Wondrous item, uncommon (requires attunement)"). Names are matched against
@@ -68,12 +68,12 @@ def join(body):
 def parse(book, first, last):
     lines = []
     for p in range(first, last + 1):
-        f = os.path.join(ROOT, "packs", ".text", book, "p%04d.txt" % p)
+        f = ocr.page_file(book, p)
         if not os.path.exists(f):
             continue
         for ln in open(f, encoding="utf-8").read().split("\n"):
             s = ln.strip()
-            if not s or re.fullmatch(r"\d{1,3}", s) or re.match(r"^(CHAPTER \d|PART \d)", s, re.I):
+            if not s or re.fullmatch(r"\d{1,3}", s) or re.match(r"^(\d{1,3}\s+)?(CHAPTER \d|PART \d)", s, re.I) or ocr.FOOTER_LINE.match(s):
                 continue
             lines.append((p, s))
     srd = json.load(open(os.path.join(ROOT, "data", "srd-items.json")))

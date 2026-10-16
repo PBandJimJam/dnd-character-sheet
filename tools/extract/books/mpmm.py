@@ -43,7 +43,7 @@ def fill(races):
         names = [f["name"] for f in feats]
         for f in feats:
             t = T.section(B, PAGES[0], PAGES[1], f["name"], stops=[n for n in names if n != f["name"]] + ["Ability Score Increase"] + [x for x in titles if x != r["name"]], after=r["name"], limit=1500)
-            if t and len(t) > 30:
+            if t and len(t) > 20:
                 f["text"] = t; found["yes"] += 1
             else:
                 found["no"].append(r["name"] + ": " + f["name"])

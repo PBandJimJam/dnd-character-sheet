@@ -1,5 +1,5 @@
 #!/bin/bash
-# OCR a scanned PDF (see ocr_pdf.swift). Command Line Tools sometimes ship a Swift compiler that
+# OCR a book PDF (see ocr_pdf.swift). Command Line Tools sometimes ship a Swift compiler that
 # doesn't match the newest SDK, so this tries the installed SDKs until one compiles.
 # Usage: tools/extract/ocr_pdf.sh <book.pdf> <book-id> [first page] [last page]
 HERE="$(cd "$(dirname "$0")" && pwd)"

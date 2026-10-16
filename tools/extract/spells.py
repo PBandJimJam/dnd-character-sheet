@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Turn a book's spell chapter (text from pdf_text.py) into content-pack spells.
+"""Turn a book's spell chapter (text from ocr_pdf.sh or pdf_text.py) into content-pack spells.
 
 Reads packs/.text/<book>/pNNNN.txt for the given pages, finds each spell block
 (name, level and school, Casting Time, Range, Components, Duration, text), fixes the
@@ -146,14 +146,14 @@ def paragraphs(lines):
 def parse(book, first, last):
     lines = []
     for p in range(first, last + 1):
-        f = os.path.join(ROOT, "packs", ".text", book, "p%04d.txt" % p)
+        f = ocr.page_file(book, p)
         if not os.path.exists(f):
             continue
         for ln in open(f, encoding="utf-8").read().split("\n"):
             ln = re.sub(r"\s*PART \d+\s*[I|]\s*SPELLS\s*", " ", ln)
             s = ln.strip()
             s = re.sub(r"\s*PART \d+\s*[I|]\s*SPELLS\s*", " ", s).strip()
-            if re.fullmatch(r"\d{1,3}", s) or re.match(r"^CHAPTER \d+", s, re.I) or not s:
+            if re.fullmatch(r"\d{1,3}", s) or re.match(r"^(\d{1,3}\s+)?CHAPTER \d+", s, re.I) or ocr.FOOTER_LINE.match(s) or not s:
                 continue
             lines.extend(GLUED_RE.split(ln))  # "Range: 60 feet Components: V" becomes two lines
     names = known_names()
