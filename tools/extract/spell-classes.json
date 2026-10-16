@@ -1594,5 +1594,75 @@
    "wizard"
   ],
   "book": "xge"
+ },
+ "Ashardalon's Stride": {
+  "lvl": 3,
+  "school": "Transmutation",
+  "classes": [
+   "artificer",
+   "ranger",
+   "sorcerer",
+   "wizard"
+  ],
+  "book": "ftd"
+ },
+ "Draconic Transformation": {
+  "lvl": 7,
+  "school": "Transmutation",
+  "classes": [
+   "druid",
+   "sorcerer",
+   "wizard"
+  ],
+  "book": "ftd"
+ },
+ "Fizban's Platinum Shield": {
+  "lvl": 6,
+  "school": "Abjuration",
+  "classes": [
+   "sorcerer",
+   "wizard"
+  ],
+  "book": "ftd"
+ },
+ "Nathair's Mischief": {
+  "lvl": 2,
+  "school": "Illusion",
+  "classes": [
+   "bard",
+   "sorcerer",
+   "wizard"
+  ],
+  "book": "ftd"
+ },
+ "Raulothim's Psychic Lance": {
+  "lvl": 4,
+  "school": "Enchantment",
+  "classes": [
+   "bard",
+   "sorcerer",
+   "warlock",
+   "wizard"
+  ],
+  "book": "ftd"
+ },
+ "Rime's Binding Ice": {
+  "lvl": 2,
+  "school": "Evocation",
+  "classes": [
+   "sorcerer",
+   "wizard"
+  ],
+  "book": "ftd"
+ },
+ "Summon Draconic Spirit": {
+  "lvl": 5,
+  "school": "Conjuration",
+  "classes": [
+   "druid",
+   "sorcerer",
+   "wizard"
+  ],
+  "book": "ftd"
  }
 }

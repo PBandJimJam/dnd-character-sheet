@@ -411,7 +411,7 @@ def tasha_feats():
     X.fill(feats, "Feats", span=4)
     out = []
     for (name, pre, summary, fx), f in zip(fs, feats):
-        e = {"id": slug(name), "name": name, "page": X.locate(name), "text": f.get("text") or summary, "effects": fx}
+        e = {"id": slug(name), "name": name, "text": f.get("text") or summary, "effects": fx}
         if pre:
             e["prerequisite"] = pre
         out.append(e)

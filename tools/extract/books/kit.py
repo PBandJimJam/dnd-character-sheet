@@ -42,8 +42,10 @@ class Book:
         return feats
 
     def subclass(self, cls, name, feats, spells=None, nxt=None, span=6):
-        e = {"id": slug(name), "name": name, "class": cls, "page": self.locate(name),
-             "features": self.fill(feats, name, span=span, stops=[nxt] if nxt else [])}
+        e = {"id": slug(name), "name": name, "class": cls, "features": self.fill(feats, name, span=span, stops=[nxt] if nxt else [])}
+        page = self.locate(name)
+        if page:
+            e["page"] = page
         if spells:
             e["spells"] = spells
         return e

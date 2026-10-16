@@ -368,6 +368,11 @@
               "charges": {
                 "type": "integer"
               },
+              "magic": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 3
+              },
               "container": {
                 "type": "string"
               },

@@ -355,7 +355,7 @@ Only `name`, `abilities` and `classes` are required.
   ```json
   {"item": "pearl-of-power", "name": "Egg-shaped pearl", "qty": 1, "equipped": false, "attuned": true, "charges": 1, "note": "Found in the vault"}
   ```
-  `item` is a pack id. `name` is optional (a display name, or the name of something not in any pack). Equipped armor and shields set AC. Equipped weapons become attacks.
+  `item` is a pack id. `magic` (1 to 3) makes it a +1, +2 or +3 weapon, armor or shield. `name` is optional (a display name, or the name of something not in any pack). Equipped armor and shields set AC. Equipped weapons become attacks.
 - **`attacks`**: extra attacks that don't come from an equipped weapon. Version 1 fields: `name`, `ability` (`str`, `dex`, `finesse`, or `spell`), `prof`, `dmg`, `type`, `range`, `props`, `ammo`, `magic`.
 - **`companions`**: `{"creature": "skeleton", "name": "Milton", "hp": 13, "note": ""}`. `creature` is a pack id.
 - **`custom.features`**: homebrew or anything a pack doesn't cover, in the same feature format, effects included. That's how a character file can be complete without a pack.

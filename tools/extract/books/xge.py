@@ -328,6 +328,6 @@ def racial_feats():
     feats = [F(n) for n, _, _, _ in fs]
     X.fill(feats, "Racial Feats", span=4)
     for (name, pre, summary, fx), f in zip(fs, feats):
-        out.append({"id": slug(name), "name": name, "page": X.locate(name), "prerequisite": {"formula": "1", "text": pre},
+        out.append({"id": slug(name), "name": name, "prerequisite": {"formula": "1", "text": pre},
                     "text": f.get("text") or summary, "effects": fx})
     return out

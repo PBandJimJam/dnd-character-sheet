@@ -20,6 +20,8 @@ BOOKS = {
     "xge": {"name": "Xanathar's Guide to Everything", "abbr": "XGE", "spells": (150, 172)},
     "tce": {"name": "Tasha's Cauldron of Everything", "abbr": "TCE", "spells": (104, 118)},
     "mpmm": {"name": "Mordenkainen Presents: Monsters of the Multiverse", "abbr": "MPMM"},
+    "ftd": {"name": "Fizban's Treasury of Dragons", "abbr": "FTD", "spells": (19, 25)},
+    "dmg": {"name": "Dungeon Master's Guide", "abbr": "DMG"},
 }
 
 

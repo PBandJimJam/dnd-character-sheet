@@ -567,6 +567,8 @@ function derive(c,st){
       if(e.type==="choice"&&e.kind==="ability")[].concat(choiceVal(key)||[]).forEach(a=>{if(scores[a]!=null)scores[a]+=(e.from&&e.from.add)||1});
       if(e.type==="asi"){const v=choiceVal(key);if(v&&v.abilities)Object.entries(v.abilities).forEach(([a,n])=>{if(scores[a]!=null)scores[a]=Math.min(20,scores[a]+(+n||0))})}})));
   }
+  // Items raise scores either way: a sheet's "final" scores don't include what you're wearing.
+  if(c.abilityMode!=="base")owners.filter(o=>o.ctx.kind==="item").forEach(o=>o.feats.forEach(f=>(f.effects||[]).forEach(e=>{if(e.type==="abilityScore"&&active(e,o))scores[e.ability]=Math.min(e.max||30,scores[e.ability]+e.add)})));
   owners.forEach(o=>o.feats.forEach(f=>(f.effects||[]).forEach(e=>{const m=e.type==="set"&&/^ability\.(\w+)$/.exec(e.target||"");if(m&&active(e,o)&&typeof e.value==="number")scores[m[1]]=e.mode==="min"?Math.min(scores[m[1]],e.value):e.mode==="override"?e.value:Math.max(scores[m[1]],e.value)})));
   d.scores=scores;
   const M=a=>Math.floor(((scores[a]||10)-10)/2);
@@ -642,8 +644,9 @@ function derive(c,st){
   d.sum=sum;d.M=M;const ov=c.overrides||{},OV=k=>ov[k]!=null&&ov[k]!==""?+ov[k]:null;
   const ctx0=mk({ctx:{}});
   const dex=M("dex");let acBase;
-  if(armorW){const a=armorW.it.armor||{};acBase=(a.base||10)+Math.min(dex,a.dexCap==null?99:a.dexCap)+(armorW.it.magic||0)}else acBase=10+dex;
-  const sh=shieldW?((shieldW.it.armor&&shieldW.it.armor.base)||2)+(shieldW.it.magic||0):0;
+  const mg=x=>(+x.inv.magic||0)+(x.it.magic||0);  // +1/+2/+3 on the gear entry or the item itself
+  if(armorW){const a=armorW.it.armor||{};acBase=(a.base||10)+Math.min(dex,a.dexCap==null?99:a.dexCap)+mg(armorW)}else acBase=10+dex;
+  const sh=shieldW?((shieldW.it.armor&&shieldW.it.armor.base)||2)+mg(shieldW):0;
   let ac=acBase+sh;d.acSource=armorW?(armorW.inv.name||armorW.it.name):"No armor";
   d.acFormulas.forEach(f=>{const v=formula(f.formula,f.ctx||ctx0)+(f.allowShield?sh:0);if(v>ac){ac=v;d.acSource=f.src}});
   ac=Math.max(ac+sum("ac"),setOf("ac",0,"max"));d.ac=OV("ac")!=null?OV("ac"):ac;
@@ -671,8 +674,8 @@ function derive(c,st){
   const wprof=it=>{const w=it.weapon||{};const list=d.prof.weapons.map(x=>String(x).toLowerCase());const nm=it.name.toLowerCase();
     return list.some(x=>x===(w.category||"")+" weapons"||x.startsWith(nm)||x==="all weapons")};
   d.attacks=inv.filter(x=>x.it&&x.it.kind==="weapon"&&x.inv.equipped).map(x=>{const w=x.it.weapon||{};const props=(w.props||[]).map(p=>String(p).toLowerCase());const fin=props.includes("finesse");
-    return{id:"inv:"+x.inv.id,name:x.inv.name||x.it.name,ability:fin?(M("dex")>=M("str")?"dex":"str"):w.ranged?"dex":"str",ranged:!!w.ranged,finesse:fin,prof:wprof(x.it),dmg:w.dmg||"1",type:w.damageType||"",
-      range:w.range||(w.ranged?"":"Melee"),props:(w.props||[]).join(", "),ammo:w.ammo||"",magic:x.it.magic||0,versatile:w.versatile||"",fromItem:true}})
+    return{id:"inv:"+x.inv.id,name:(x.inv.name||x.it.name)+(+x.inv.magic?" +"+x.inv.magic:""),ability:fin?(M("dex")>=M("str")?"dex":"str"):w.ranged?"dex":"str",ranged:!!w.ranged,finesse:fin,prof:wprof(x.it),dmg:w.dmg||"1",type:w.damageType||"",
+      range:w.range||(w.ranged?"":"Melee"),props:(w.props||[]).join(", "),ammo:w.ammo||"",magic:(+x.inv.magic||0)+(x.it.magic||0),versatile:w.versatile||"",fromItem:true}})
     .concat((c.attacks||[]).map(a=>Object.assign({},a,{finesse:a.ability==="finesse"||/finesse/i.test(a.props||"")})));
   return d;
 }
@@ -1653,7 +1656,7 @@ function addItem(){
    <div class="field"><span class="label">Pick one</span><select id="mi-lib" size="7" style="min-height:160px"></select></div>
    <div id="mi-prev" class="muted" style="font-size:.85rem;white-space:pre-wrap"></div>
    <label class="check"><input type="checkbox" id="mi-own"> Not in the list (just a name)</label>
-   <div class="fgrid"><div class="field"><span class="label">Name</span><input id="mi-n" autocomplete="off"></div><div class="field"><span class="label">Quantity</span><input id="mi-qty" class="num" value="1"></div></div>
+   <div class="fgrid"><div class="field"><span class="label">Name</span><input id="mi-n" autocomplete="off"></div><div class="field"><span class="label">Quantity</span><input id="mi-qty" class="num" value="1"></div><div class="field"><span class="label">Magic bonus</span><select id="mi-mag"><option value="0">None</option><option value="1">+1</option><option value="2">+2</option><option value="3">+3</option></select></div></div>
    <div class="row"><label class="check"><input type="checkbox" id="mi-eq"> Equipped / held</label><label class="check"><input type="checkbox" id="mi-at"> Attuned</label></div>
    <div class="field"><span class="label">Note (optional)</span><input id="mi-t" autocomplete="off" placeholder="Found in the dragon's hoard"></div>
    <div class="modal-f"><button class="btn" data-close>Cancel</button><button class="btn primary" id="mi-ok">Add</button></div>`,m=>{
@@ -1665,7 +1668,7 @@ function addItem(){
     q.oninput=draw;sel.onchange=fill;own.onchange=()=>{sel.disabled=own.checked;if(own.checked){sel.value="";m.querySelector("#mi-prev").textContent="";m.querySelector("#mi-n").focus()}};draw();q.focus();
     m.querySelector("#mi-ok").onclick=()=>{const n=m.querySelector("#mi-n").value.trim();if(!n){toast("Pick an item or type a name.");return}
       const d=!own.checked&&sel.value&&ref("items",sel.value);const qty=Math.max(1,parseInt(m.querySelector("#mi-qty").value)||1);const note=m.querySelector("#mi-t").value.trim();
-      const it={id:"i"+uid(),qty:qty,note:note,equipped:m.querySelector("#mi-eq").checked,attuned:m.querySelector("#mi-at").checked};if(d){it.item=d.id;if(d.name!==n)it.name=n}else it.name=n;
+      const it={id:"i"+uid(),qty:qty,note:note,equipped:m.querySelector("#mi-eq").checked,attuned:m.querySelector("#mi-at").checked};const mag=+m.querySelector("#mi-mag").value;if(mag)it.magic=mag;if(d){it.item=d.id;if(d.name!==n)it.name=n}else it.name=n;
       C.inventory.push(it);saveChar();closeModal();log("item","Got "+(qty>1?qty+" × ":"")+n,[d&&d.rarity,it.attuned?"Attuned":"",note].filter(Boolean).join(" · "),null,{item:{name:n,qty:qty,note:note}})}});
 }
 function viewSheet(){
@@ -1694,7 +1697,7 @@ function viewSheet(){
    ${coinsCard()}
    <section class="card"><div class="card-h"><h2>Gear</h2><button class="btn small" id="sh-item">Add item</button></div>
     <div class="tbl"><table class="inv">${inv.map(i=>{const def=i.item&&ref("items",i.item);const canEq=!def||["weapon","armor","shield","wondrous","ring","rod","staff","wand"].includes(def.kind);
-      return `<tr><td><b>${esc(itemName(i))}</b>${def&&(def.rarity||def.kind==="weapon"||def.kind==="armor")?` <span class="tag">${esc(def.rarity||(def.weapon?def.weapon.dmg+" "+def.weapon.damageType:"AC "+def.armor.base+(def.armor.dexCap===0?"":def.armor.dexCap?" + Dex (max "+def.armor.dexCap+")":" + Dex")))}</span>`:""}
+      return `<tr><td><b>${esc(itemName(i))}${+i.magic?" +"+i.magic:""}</b>${def&&(def.rarity||def.kind==="weapon"||def.kind==="armor")?` <span class="tag">${esc(def.rarity||(def.weapon?def.weapon.dmg+" "+def.weapon.damageType:"AC "+def.armor.base+(def.armor.dexCap===0?"":def.armor.dexCap?" + Dex (max "+def.armor.dexCap+")":" + Dex")))}</span>`:""}
         <div class="row" style="gap:10px">${canEq?`<label class="check" style="font-size:.78rem"><input type="checkbox" data-equip="${esc(i.id)}" ${i.equipped?"checked":""}> ${def&&def.kind==="wondrous"?"Held/worn":"Equipped"}</label>`:""}${!def||def.attune?`<label class="check" style="font-size:.78rem"><input type="checkbox" data-attune="${esc(i.id)}" ${i.attuned?"checked":""}> Attuned</label>`:""}</div>
         ${i.note?`<div class="muted" style="font-size:.8rem">${esc(i.note)}</div>`:""}${def&&def.text?`<details><summary class="muted" style="font-size:.8rem">What it does</summary><p style="white-space:pre-wrap;font-size:.84rem;margin:4px 0">${esc(def.text)}</p></details>`:""}</td>
         <td class="q"><button class="btn small ghost" data-qty="${esc(i.id)}" data-d="-1" aria-label="One fewer">−</button><span class="num">${i.qty}</span><button class="btn small ghost" data-qty="${esc(i.id)}" data-d="1" aria-label="One more">+</button><button class="btn small ghost" data-rmitem="${esc(i.id)}">Remove</button></td></tr>`}).join("")}</table></div>
