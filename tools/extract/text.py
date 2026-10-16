@@ -80,13 +80,49 @@ def _section(book, first, last, heading, stops=(), limit=2400, after=None):
         for _, s in ls[i + 1:]:
             if is_heading(s, list(stops)) or run_in(s, list(stops)) is not None or (s.isupper() and len(s) > 4 and not re.search(r"\d", s)):
                 break
+            if body and new_heading(s, body[-1]):  # the next section ("Arcane Shot Options", a table title, lore)
+                break
+            if body and re.match(r"^\s*(d\s?\d{1,3}\b|\d{1,3}\s*[-–]\s*\d{1,3}\b)", s):
+                break  # a table row ("01-02 Roll on this table...")
+            letters = [c for c in s if c.isalpha()]
+            if body and len(letters) >= 6 and sum(c.isupper() for c in letters) >= 0.75 * len(letters) and not re.search(r"\d{2,}", s):
+                break  # a heading in capitals the scan garbled ("A REA ne S H OT 0PT10 N S")
             body.append(s)
             if sum(len(x) for x in body) > limit:
                 break
-        text = join(body)
+        text = trim(strip_footers(join(body)), limit)
         if len(text) > 40:  # a short hit is a table entry; keep looking for the real heading
             return ocr.clean(text).strip()
     return None
+
+
+FOOTER = re.compile(r"\s*\b\d{0,3}\s*(?i:chapter|part|appendix)\s*\d*\s*[|I/\\:]\s*[A-Z][A-Z,'’&-]*(?: [A-Z][A-Z,'’&-]*)*\b(?:\s*\d{1,3}\b)?")
+
+
+SMALL = {"of", "the", "and", "in", "with", "a", "an", "to", "or", "on", "from", "for"}
+
+
+def new_heading(s, prev):
+    """A short title-case line after a finished sentence: a heading the caller didn't list."""
+    words = s.strip().split()
+    if not (0 < len(words) <= 6 and len(s) < 40 and re.search(r"[.!?:]$", prev.strip())):
+        return False
+    if re.search(r"[.,;:]$", s.strip()) or not words[0][:1].isupper():
+        return False
+    return all(w[:1].isupper() or w.lower() in SMALL or not w[:1].isalpha() for w in words)
+
+
+def trim(t, limit):
+    """Past the limit, end at the last paragraph break so a run-on doesn't keep the next section."""
+    if len(t) <= limit * 0.66:
+        return t
+    cut = t.rfind("\n\n", 0, int(limit * 0.66))
+    return t[:cut].strip() if cut > 200 else t
+
+
+def strip_footers(t):
+    """Page footers that land mid-text: '24 CHAPTER 1 | FANTASTICAL RACES'."""
+    return re.sub(r"\s{2,}", " ", FOOTER.sub(" ", t)).strip()
 
 
 def join(body):

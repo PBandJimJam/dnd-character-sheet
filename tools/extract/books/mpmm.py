@@ -32,14 +32,21 @@ def race(name, traits, size="Medium", speed=30, kind="Humanoid"):
             F("Creature Type", text="You are a %s." % kind, id=rid + "-type"),
             F("Languages", text="Common and one other language you and your DM agree on.", effects=[PROF("language", ["Common"]), CHOICE("languages", "One more language", "language", 1, {"list": ["any"]})], id=rid + "-languages")]
     feats = [F(n, text=t, effects=fx, id=rid + "-" + slug(n)) for n, t, fx in traits]
-    names = [f["name"] for f in feats]
-    for f in feats:
-        t = T.section(B, PAGES[0], PAGES[1], f["name"], stops=[n for n in names if n != f["name"]] + ["Ability Score Increase"], after=name, limit=1500)
-        if t and len(t) > 30:
-            f["text"] = t; found["yes"] += 1
-        else:
-            found["no"].append(name + ": " + f["name"])
-    return {"id": rid, "name": name, "size": size, "speed": speed, "source": "MPMM", "features": base + feats}
+    return {"id": rid, "name": name, "size": size, "speed": speed, "source": "MPMM", "features": base + feats, "_traits": feats}
+
+
+def fill(races):
+    """Trait text from the book. Every race's name is a stop, so the last trait doesn't run on into the next race."""
+    titles = [r["name"] for r in races]
+    for r in races:
+        feats = r.pop("_traits")
+        names = [f["name"] for f in feats]
+        for f in feats:
+            t = T.section(B, PAGES[0], PAGES[1], f["name"], stops=[n for n in names if n != f["name"]] + ["Ability Score Increase"] + [x for x in titles if x != r["name"]], after=r["name"], limit=1500)
+            if t and len(t) > 30:
+                f["text"] = t; found["yes"] += 1
+            else:
+                found["no"].append(r["name"] + ": " + f["name"])
 
 
 DV = ("Darkvision", "See in dim light within 60 ft as if bright, and darkness as dim.", [SENSE("darkvision", 60)])
@@ -159,5 +166,6 @@ def build():
             F("Swiftstride", text="+10 ft walking speed while shifted; reaction move 10 ft.", effects=[BON("speed", 10, note="While shifted")]),
             F("Wildhunt", text="Advantage on Wisdom checks while shifted; no advantage against you.", effects=[])]},
     ]
+    fill(races)
     print("trait text found for %d; missing %d: %s" % (found["yes"], len(found["no"]), ", ".join(found["no"][:20])))
     return {"races": races, "optionSets": sets}

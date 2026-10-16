@@ -55,6 +55,24 @@ def main(book):
         for k, v in mod.build().items():
             pack[k] = v
             print("%s: %d" % (k, len(v)))
+    ends = fixes.get("textEnd", {})
+    def trim(e):  # where a feature's text runs on into the next column or a table
+        rule = ends.get(e.get("name"))
+        t = e.get("text") or ""
+        if rule and t:
+            if rule.get("before") and rule["before"] in t:
+                e["text"] = t[:t.index(rule["before"])].strip()
+            elif rule.get("after") and rule["after"] in t:
+                e["text"] = t[:t.index(rule["after"]) + len(rule["after"])] + rule.get("append", "")
+    for k in ("subclasses", "races", "backgrounds"):
+        for e in pack.get(k, []):
+            for f in e.get("features", []) + [f for s in e.get("subraces", []) for f in s.get("features", [])]:
+                trim(f)
+    for e in pack.get("feats", []):
+        trim(e)
+    for s in pack.get("optionSets", []):
+        for o in s.get("options", []):
+            trim(o)
     out = os.path.join(ROOT, "packs", book + ".json")
     with open(out, "w", encoding="utf-8") as f:
         json.dump(pack, f, indent=1, ensure_ascii=False)

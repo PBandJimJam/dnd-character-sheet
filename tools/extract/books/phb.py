@@ -572,10 +572,12 @@ def races():
               effects=[GRANT([{"id": "thaumaturgy"}, {"id": "hellish-rebuke", "minLevel": 3, "uses": 1, "recharge": "long", "noSlot": True}, {"id": "darkness", "minLevel": 5, "uses": 1, "recharge": "long", "noSlot": True}], ability="cha")]),
             L("Common", "Infernal")]),
     ]
+    looked_up = lambda fs: [f for f in fs if f["name"] != "Ability Score Increase"]  # the summaries are exact; the book's lines match the wrong race
+    titles = [x["name"] for x in out] + [s["name"] for x in out for s in x.get("subraces", [])]
     for r in out:  # book text for each trait, found under the race's heading
-        with_text(r["features"], (17, 44), after=r["name"], extra_stops=[x["name"] for x in out])
+        with_text(looked_up(r["features"]), (17, 44), after=r["name"], extra_stops=titles)
         for s in r.get("subraces", []):
-            with_text(s["features"], (17, 44), after=s["name"])
+            with_text(looked_up(s["features"]), (17, 44), after=s["name"], extra_stops=titles)
     return out
 
 
