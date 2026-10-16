@@ -81,12 +81,12 @@ Rules live in a feature's `effects` list. A feature without effects still shows 
 - **`recharge`**: `short` (short or long rest), `long`, `dawn` (resets with your long rest), `turn`, or `never` (only by hand). Can be a scale, as with Bardic Inspiration: `{"1": "long", "5": "short"}`.
 - **`econ`**: `action`, `bonus`, `reaction`, `free`, `minute` (a minute or longer) or `special`. The combat tracker uses it.
 - **`cost`**: `{"resource": "rage", "amount": 1}` spends from a resource. `{"slot": 1}` spends a spell slot of at least that level.
-- **`gain`**: what an action gives back. `{"resource": "bardic-inspiration", "amount": 1}` refills a resource. `{"slots": {"total": "ceil(classLevel / 2)", "maxLevel": 5}}` restores slots (Arcane Recovery). `{"slots": {"total": 1, "maxLevel": 3}}` restores one slot (Pearl of Power).
-- **`when`**: limits an effect. The app checks these words: `unarmored` (no armor), `noShield`, `wearingArmor`, `lightArmor`, `firstRound` (the first round of combat), `concentrating`, `toggle:<id>` (that toggle is on), `attuned`, `equipped`. Anything else goes in `note`. An effect that only has a `note` is shown but not added in.
+- **`gain`**: what an action gives back. `{"resource": "bardic-inspiration", "amount": 1}` refills a resource. `{"slots": {"total": "ceil(classLevel / 2)", "maxLevel": 5}}` restores slots (Arcane Recovery). `{"slots": {"total": 3, "maxLevel": 3, "count": 1}}` restores one slot of up to 3rd level (Pearl of Power).
+- **`when`**: limits an effect. The app checks these words: `unarmored` (no armor), `noShield`, `wearingArmor`, `lightArmor`, `noHeavyArmor`, `firstRound` (the first round of combat), `concentrating`, `toggle:<id>` (that toggle is on), `attuned`, `equipped`. Anything else goes in `note`. An effect that only has a `note` is shown but not added in.
 
 ### Targets for `bonus` and `set`
 
-`ac`, `initiative`, `speed`, `hp.max`, `hp.perLevel`, `save.all`, `save.<ability>`, `check.all`, `check.<ability>`, `skill.<skillId>`, `passive.<skillId>`, `attack.all`, `attack.melee`, `attack.ranged`, `attack.spell`, `attack.weapon`, `damage.melee`, `damage.ranged`, `damage.weapon`, `damage.spell`, `spell.dc`, `spell.attack`, `attacksPerAction`, `critRange`, `ability.<ability>`.
+`ac`, `initiative`, `speed`, `hp.max`, `hp.perLevel`, `save.all`, `save.<ability>`, `check.all`, `check.<ability>`, `skill.<skillId>`, `passive.<skillId>`, `attack.all`, `attack.melee`, `attack.ranged`, `attack.spell`, `attack.weapon`, `damage.melee`, `damage.ranged`, `damage.weapon`, `damage.spell`, `spell.dc`, `spell.attack` (add `.<classId>` for one class only, as in `spell.dc.bard`), `attacksPerAction`, `critRange`, `ability.<ability>`.
 
 Examples:
 
@@ -181,11 +181,16 @@ The character file stores answers under `choices`, keyed by `ownerId/choiceId`.
   "optionSets": [],
   "spells": [],
   "items": [],
-  "creatures": []
+  "creatures": [],
+  "spellEffects": {}
 }
 ```
 
 Every collection is optional. Every entry can carry `page` (and `source` when it isn't the pack's book).
+
+`spellEffects` adds effects to spells defined elsewhere, keyed by spell id, so a pack can make the SRD's *mage armor* change AC without repeating its text: `{"mage-armor": [{"type": "acFormula", "formula": "13 + mod.dex", "when": "unarmored"}]}`.
+
+The app always loads `data/srd-spells.json`, `data/srd-items.json` and `data/base-pack.json` (the built-in classes, races and gear), then every `.json` pack in `packs/`, then packs loaded on the *Backup & level up* tab. A later pack overrides an earlier one with the same id.
 
 ### Feature
 

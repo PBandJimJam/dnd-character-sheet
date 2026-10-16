@@ -213,6 +213,11 @@ def main(paths):
         kind = "content-pack" if d.get("format") == "dnd-content-pack" else "character"
         docs.append((p, kind, d))
     idx = Index()
+    # The app always loads the SRD spell and item lists, so their ids count as defined.
+    for coll, name in (("spells", "srd-spells.json"), ("items", "srd-items.json")):
+        with open(os.path.join(ROOT, "data", name)) as f:
+            srd = json.load(f)
+        idx.ids[coll] |= set(srd) if isinstance(srd, dict) else {slug(x["name"]) for x in srd}
     for p, kind, d in docs:
         if kind == "content-pack":
             idx.add_pack(d)

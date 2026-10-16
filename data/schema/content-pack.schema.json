@@ -210,6 +210,16 @@
           "description": "Keyed by id (version 1 style)."
         }
       ]
+    },
+    "spellEffects": {
+      "type": "object",
+      "description": "Effects to add to spells defined elsewhere (e.g. SRD spells), keyed by spell id.",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "$ref": "#/$defs/effect"
+        }
+      }
     }
   },
   "additionalProperties": false,
@@ -303,12 +313,12 @@
     },
     "when": {
       "type": "string",
-      "description": "unarmored, noShield, wearingArmor, lightArmor, firstRound, concentrating, attuned, equipped, or toggle:<id>",
-      "pattern": "^(unarmored|noShield|wearingArmor|lightArmor|firstRound|concentrating|attuned|equipped|toggle:[a-z0-9-]+)( and (unarmored|noShield|wearingArmor|lightArmor|firstRound|concentrating|attuned|equipped|toggle:[a-z0-9-]+))*$"
+      "description": "unarmored, noShield, wearingArmor, lightArmor, noHeavyArmor, firstRound, concentrating, attuned, equipped, or toggle:<id>",
+      "pattern": "^(unarmored|noShield|wearingArmor|lightArmor|noHeavyArmor|firstRound|concentrating|attuned|equipped|toggle:[a-z0-9-]+)( and (unarmored|noShield|wearingArmor|lightArmor|noHeavyArmor|firstRound|concentrating|attuned|equipped|toggle:[a-z0-9-]+))*$"
     },
     "target": {
       "type": "string",
-      "pattern": "^(ac|initiative|speed|hp\\.max|hp\\.perLevel|attacksPerAction|critRange|save\\.(all|str|dex|con|int|wis|cha)|check\\.(all|str|dex|con|int|wis|cha)|skill\\.[a-zA-Z]+|passive\\.[a-zA-Z]+|attack\\.(all|melee|ranged|spell|weapon)|damage\\.(melee|ranged|weapon|spell)|spell\\.(dc|attack)|ability\\.(str|dex|con|int|wis|cha))$"
+      "pattern": "^(ac|initiative|speed|hp\\.max|hp\\.perLevel|attacksPerAction|critRange|save\\.(all|str|dex|con|int|wis|cha)|check\\.(all|str|dex|con|int|wis|cha)|skill\\.[a-zA-Z]+|passive\\.[a-zA-Z]+|attack\\.(all|melee|ranged|spell|weapon)|damage\\.(melee|ranged|weapon|spell)|spell\\.(dc|attack)(\\.[a-z0-9-]+)?|ability\\.(str|dex|con|int|wis|cha))$"
     },
     "cost": {
       "oneOf": [
@@ -373,6 +383,10 @@
                   "type": "integer",
                   "minimum": 1,
                   "maximum": 9
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 1
                 }
               },
               "additionalProperties": false,

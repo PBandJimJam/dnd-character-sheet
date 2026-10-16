@@ -346,6 +346,9 @@
           "items": {
             "type": "object",
             "properties": {
+              "id": {
+                "type": "string"
+              },
               "item": {
                 "type": "string"
               },
@@ -380,6 +383,9 @@
           "items": {
             "type": "object",
             "properties": {
+              "id": {
+                "type": "string"
+              },
               "name": {
                 "type": "string"
               },
@@ -461,6 +467,9 @@
           "items": {
             "type": "object",
             "properties": {
+              "id": {
+                "type": "string"
+              },
               "creature": {
                 "type": "string"
               },
