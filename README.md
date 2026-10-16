@@ -44,6 +44,7 @@ Spell fields: `name`, `lvl` (0 for cantrips), `school`, `time` (`action`, `bonus
 - `index.html`: the whole app.
 - `data/srd-spells.json`, `data/srd-items.json`: SRD content.
 - `tools/serve.py`: the local server (static files plus the backup endpoint).
+- `docs/data-formats.md`, `data/schema/`: the version 2 content pack and character formats (in progress). `tools/validate.py` checks files against them.
 - `mac/D&D Ledger.app`: the Mac launcher. It starts the server and opens Chrome, Edge or Brave as an app window, or your default browser.
 
 ## Credits and license
