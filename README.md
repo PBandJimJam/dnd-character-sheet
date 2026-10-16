@@ -49,7 +49,7 @@ python3 tools/extract/build_pack.py phb                         # packs/phb.json
 python3 tools/validate.py data/base-pack.json packs/phb.json    # check it
 ```
 
-The local server loads every pack in `packs/` on start. Books with a definitions file in `tools/extract/books/` (races, feats, subclasses and their mechanics) get those too; the others get their spells. Scanned PDFs without a text layer need OCR first.
+The local server loads every pack in `packs/` on start. Books with a definitions file in `tools/extract/books/` (races, feats, subclasses and their mechanics) get those too; the others get their spells. For a scanned PDF with no text layer, run `tools/extract/ocr_pdf.sh "<book>.pdf" <book-id>` instead of `pdf_text.py`. It uses macOS's built-in text recognition, so there's nothing to install.
 
 ## Files
 

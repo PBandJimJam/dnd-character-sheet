@@ -23,6 +23,7 @@ BOOKS = {
     "ftd": {"name": "Fizban's Treasury of Dragons", "abbr": "FTD", "spells": (19, 25)},
     "dmg": {"name": "Dungeon Master's Guide", "abbr": "DMG"},
     "mm": {"name": "Monster Manual", "abbr": "MM"},
+    "bgg": {"name": "Bigby Presents: Glory of the Giants", "abbr": "BGG"},
     "vgm": {"name": "Volo's Guide to Monsters", "abbr": "VGM", "loadOrder": 10, "creatures": (1, 226)},
     "mtf": {"name": "Mordenkainen's Tome of Foes", "abbr": "MTF", "loadOrder": 10, "creatures": (1, 258)},
 }

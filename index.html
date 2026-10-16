@@ -1322,7 +1322,7 @@ function choiceOptions(ch,d){
     if(ch.kind==="skill")ids=ids.filter(s=>!d.prof.skills.has(s)||have.includes(s));if(ch.kind==="expertise")ids=ids.filter(s=>!d.prof.expertise.has(s)||have.includes(s));
     return ids.map(s=>[s,s==="thievesTools"?"Thieves' tools":(SKILLS.find(x=>x[0]===s)||[0,s])[1],""])}
   if(ch.kind==="ability")return (f.abilities||ABIL.map(a=>a[0])).map(a=>[a,(ABIL.find(x=>x[0]===a)||[0,a])[1],""]);
-  if(ch.kind==="feat")return Object.values(R.feats).map(x=>[x.id,x.name,x.text||""]);
+  if(ch.kind==="feat")return Object.values(R.feats).filter(x=>!(f.ids&&f.ids.length)||f.ids.includes(x.id)).map(x=>[x.id,x.name,x.text||""]);
   if((ch.kind==="language"||ch.kind==="tool")&&f.list&&!f.list.includes("any"))return f.list.map(x=>[x,x,""]);
   if(ch.kind==="spell"){const sf=f.spells||{};const maxL=sf.level!=null?sf.level:sf.maxLevel==="slot"?Math.max(d.slots.length,d.pact?d.pact.lvl:0):sf.maxLevel!=null?sf.maxLevel:9;
     const list=sf.list&&sf.list!=="any"?slug(sf.list):null;
