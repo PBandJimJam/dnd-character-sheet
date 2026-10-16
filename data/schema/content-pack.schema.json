@@ -29,6 +29,10 @@
     "_about": {
       "type": "string"
     },
+    "loadOrder": {
+      "type": "integer",
+      "description": "Packs load in this order (default 50); a later pack wins for the same id."
+    },
     "source": {
       "type": "object",
       "properties": {
@@ -1581,6 +1585,25 @@
           }
         },
         "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false,
+            "required": [
+              "name",
+              "text"
+            ]
+          }
+        },
+        "bonusActions": {
           "type": "array",
           "items": {
             "type": "object",

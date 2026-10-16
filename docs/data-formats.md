@@ -190,7 +190,7 @@ Every collection is optional. Every entry can carry `page` (and `source` when it
 
 `spellEffects` adds effects to spells defined elsewhere, keyed by spell id, so a pack can make the SRD's *mage armor* change AC without repeating its text: `{"mage-armor": [{"type": "acFormula", "formula": "13 + mod.dex", "when": "unarmored"}]}`.
 
-The app always loads `data/srd-spells.json`, `data/srd-items.json` and `data/base-pack.json` (the built-in classes, races and gear), then every `.json` pack in `packs/`, then packs loaded on the *Backup & level up* tab. A later pack overrides an earlier one with the same id, except option sets, which merge: a book that adds invocations or maneuvers lists only its new options.
+The app always loads `data/srd-spells.json`, `data/srd-items.json` and `data/base-pack.json` (the built-in classes, races and gear), then every `.json` pack in `packs/` (in `loadOrder`, default 50), then packs loaded on the *Backup & level up* tab. A later pack overrides an earlier one with the same id, except option sets, which merge: a book that adds invocations or maneuvers lists only its new options.
 
 ### Feature
 
@@ -266,7 +266,7 @@ The version 1 fields stay (`name`, `rarity`, `type`, `attune`, `text`). New:
 
 For familiars, summons, animated dead and wild shapes. The app shows a compact stat block; only the basics are read.
 
-`id`, `name`, `size`, `type`, `alignment`, `ac` (and `acNote`, like "natural armor"), `hp` (`{"average": 13, "dice": "2d8 + 4"}`), `speed`, `abilities`, `saves`, `skills`, `vulnerabilities`, `resistances`, `immunities`, `conditionImmunities`, `senses`, `languages`, `cr`, and `traits`, `actions`, `reactions`, `legendary` (each a list of `{"name", "text"}`).
+`id`, `name`, `size`, `type`, `alignment`, `ac` (and `acNote`, like "natural armor"), `hp` (`{"average": 13, "dice": "2d8 + 4"}`), `speed`, `abilities`, `saves`, `skills`, `vulnerabilities`, `resistances`, `immunities`, `conditionImmunities`, `senses`, `languages`, `cr`, and `traits`, `actions`, `bonusActions`, `reactions`, `legendary` (each a list of `{"name", "text"}`).
 
 ## Character file
 

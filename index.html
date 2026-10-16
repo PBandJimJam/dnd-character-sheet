@@ -300,8 +300,10 @@ async function loadLibrary(){
   if(sp)addPack({id:"srd",name:"SRD 5.1 spells",source:{abbr:"SRD 5.1"},spells:sp},"Built in");
   if(it)addPack({id:"srd-items",name:"SRD 5.1 magic items",source:{abbr:"SRD 5.1"},items:it},"Built in");
   if(base)addPack(base,"Built in");else setTimeout(()=>toast("Couldn't load data/base-pack.json, so classes and races are missing. Run the ledger from tools/serve.py.",true),500);
-  // Packs made from your own books live in the git-ignored packs/ folder; the local server lists them.
-  try{const r=await fetch("api/packs",{cache:"no-cache"});if(r.ok){const j=await r.json();for(const f of j.files||[]){const p=await get("packs/"+encodeURIComponent(f));if(p&&p.format==="dnd-content-pack")addPack(p,"packs/"+f)}}}catch(e){}
+  // Packs made from your own books live in the git-ignored packs/ folder. They load by loadOrder (default 50),
+  // so a newer book that reprints monsters (Monsters of the Multiverse) wins over the older ones.
+  try{const r=await fetch("api/packs",{cache:"no-cache"});if(r.ok){const j=await r.json();const got=[];for(const f of j.files||[]){const p=await get("packs/"+encodeURIComponent(f));if(p&&p.format==="dnd-content-pack")got.push([f,p])}
+    got.sort((a,b)=>((a[1].loadOrder??50)-(b[1].loadOrder??50))||a[0].localeCompare(b[0])).forEach(([f,p])=>addPack(p,"packs/"+f))}}catch(e){}
   try{PACKS=(await Store.list("packs")).map(p=>Object.assign(p,{id:p._id||p.id}))}catch(e){PACKS=[]}
   PACKS.forEach(p=>{try{addPack(p,"Uploaded")}catch(e){}});
 }
@@ -1742,7 +1744,7 @@ function statBlock(cr){
    ${cr.abilities?`<p class="num" style="font-size:.82rem;margin:4px 0">${ABIL.map(([k])=>cr.abilities[k]!=null?k.toUpperCase()+" "+cr.abilities[k]+" ("+sg(mod(cr.abilities[k]))+")":"").filter(Boolean).join(" · ")}</p>`:""}
    ${line("Saving Throws",cr.saves)}${line("Skills",cr.skills)}${line("Damage Vulnerabilities",cr.vulnerabilities)}${line("Damage Resistances",cr.resistances)}${line("Damage Immunities",cr.immunities)}${line("Condition Immunities",cr.conditionImmunities)}
    ${line("Senses",cr.senses)}${line("Languages",cr.languages)}${line("Challenge",cr.cr)}
-   ${ents("",cr.traits)}${ents("Actions",cr.actions)}${ents("Reactions",cr.reactions)}${ents("Legendary actions",cr.legendary)}`}
+   ${ents("",cr.traits)}${ents("Actions",cr.actions)}${ents("Bonus actions",cr.bonusActions)}${ents("Reactions",cr.reactions)}${ents("Legendary actions",cr.legendary)}`}
 function editAttack(id){
   const a=id?(C.attacks||[]).find(x=>x.id===id):{id:"a"+uid(),name:"",ability:"dex",ranged:true,prof:true,dmg:"1d6",type:"piercing",range:"",props:"",ammo:"",magic:0};
   openModal(`<h2>${id?"Edit":"Add"} attack</h2>

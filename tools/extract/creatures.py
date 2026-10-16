@@ -22,7 +22,7 @@ FIELDS = [("hp", r"Hit\s*Points?"), ("speed", r"Speed"), ("saves", r"Saving\s*Th
 FIELD_RE = [(k, re.compile(r"^\s*" + p + r"\b\s*(.*)$", re.I)) for k, p in FIELDS]
 ABIL_LABEL = re.compile(r"^\s*(STR|DEX|CON|INT|WIS|CHA)\s*$")
 ABIL_VALUE = re.compile(r"^\s*(\d{1,2})\s*\(\s*[+\-−–]?\s*\d+\s*\)\s*$")
-SECTION = {"ACTIONS": "actions", "REACTIONS": "reactions", "LEGENDARY ACTIONS": "legendary"}
+SECTION = {"ACTIONS": "actions", "BONUS ACTIONS": "bonusActions", "REACTIONS": "reactions", "LEGENDARY ACTIONS": "legendary", "MYTHIC ACTIONS": "legendary"}
 SMALL = {"of", "the", "and", "in", "with", "a", "an", "to", "or", "on", "from"}
 
 
@@ -35,6 +35,12 @@ def capsy(s):
     return len(letters) >= 3 and sum(c.isupper() for c in letters) >= 0.8 * len(letters) and len(s) <= 50
 
 
+def titled(s):
+    """A clean title-case name line: 'Berbalang', 'Star Spawn Mangler', 'Drow Matron Mother'."""
+    words = s.strip().split()
+    return 0 < len(words) <= 6 and len(s) <= 45 and not s.strip().endswith(".") and all(w[0].isupper() or w.lower() in SMALL for w in words) and not any(len(w) == 1 and w.lower() not in ("a",) for w in words)
+
+
 def run_in(s):
     """'Multiattack. The dragon ...' -> ('Multiattack', 'The dragon ...')."""
     m = re.match(r"^([A-Z][A-Za-z'’]*(?:[ -][A-Za-z'’]+|\s*\([^)]{1,25}\)){0,6})\s*\.\s+(\S.*)$", s)
@@ -44,6 +50,18 @@ def run_in(s):
     if not words or any(w[0].islower() and w.lower() not in SMALL for w in words):
         return None
     return m.group(1).strip(), m.group(2)
+
+
+def num(v):
+    return int(v.replace("l", "1").replace("I", "1").replace("O", "0"))
+
+
+def fix_dice(t):
+    """Damage dice the scans garble: '(IdlO + 3)' -> '(1d10 + 3)', '(2d1 0)' -> '(2d10)'."""
+    def one(m):
+        n, f = m.group(1).replace("I", "1").replace("l", "1"), m.group(2).replace("I", "1").replace("l", "1").replace("O", "0").replace("o", "0").replace(" ", "")
+        return "%sd%s" % (n or "1", f)
+    return re.sub(r"(?<=\()\s*([0-9Il]{0,2})\s?d\s?([0-9IlOo]{1,2}(?:\s[0-9Oo])?)(?=\s*[)+\-])", one, t)
 
 
 def join(body):
@@ -140,7 +158,11 @@ def parse(book, first, last):
             lines.append((p, s))
     import difflib
     sq = lambda x: re.sub(r"[^a-z]", "", x.lower().replace("1", "l").replace("0", "o"))
-    canon = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "creature-names.json")))  # names only
+    here = os.path.dirname(os.path.abspath(__file__))
+    canon = json.load(open(os.path.join(here, "creature-names.json")))  # names only: the Monster Manual's, plus the book's own
+    for extra in sorted(os.listdir(here)):  # every book's list: Monsters of the Multiverse reprints the others
+        if extra.startswith("creature-names-") and extra.endswith(".json"):
+            canon = sorted(set(canon) | set(json.load(open(os.path.join(here, extra)))))
     keys = {sq(n): n for n in canon}
     def known_name(s):
         hit = difflib.get_close_matches(sq(s), list(keys), n=1, cutoff=0.78)
@@ -158,7 +180,7 @@ def parse(book, first, last):
             continue
         if TYPE_RE.match(lines[i][1]) and len(lines[i][1]) < 80 and any(AC_RE.match(x) for _, x in lines[i + 1:i + 3]):
             cands = [lines[i - 1][1]] + ([lines[i - 2][1] + " " + lines[i - 1][1]] if i > 1 else [])
-            nm = next((known_name(x) for x in cands if known_name(x)), None) or (lines[i - 1][1] if capsy(lines[i - 1][1]) and not TYPE_RE.match(lines[i - 1][1]) else None)
+            nm = next((known_name(x) for x in cands if known_name(x)), None) or (lines[i - 1][1] if (capsy(lines[i - 1][1]) or titled(lines[i - 1][1])) and not TYPE_RE.match(lines[i - 1][1]) else None)
             src = "direct"
             if not nm:  # the name was lost: true dragons are named from size, breath and alignment; others from how the block refers to itself
                 nm = dragon_name(lines, i); src = "dragon"
@@ -190,9 +212,9 @@ def parse(book, first, last):
             labs = re.findall(r"\b(STR|DEX|CON|INT|WIS|CHA)\b", s)
             if labs and re.fullmatch(r"(\s*(STR|DEX|CON|INT|WIS|CHA)\b)+\s*", s):  # one label, or all six on a line
                 labels += labs; cur = None; j += 1; continue
-            vals = re.findall(r"(\d{1,2})\s*\(\s*[+\-−–]?\s*\d+\s*\)", s)
-            if vals and re.fullmatch(r"(\s*\d{1,2}\s*\(\s*[+\-−–]?\s*\d+\s*\))+\s*", s):
-                values += [int(v) for v in vals]; cur = None; j += 1; continue
+            vals = re.findall(r"([0-9lIO]{1,2})\s*\(\s*[+\-−–]?\s*[0-9lIO]+\s*\)", s)
+            if vals and re.fullmatch(r"(\s*[0-9lIO]{1,2}\s*\(\s*[+\-−–]?\s*[0-9lIO]+\s*\))+\s*", s):
+                values += [num(v) for v in vals]; cur = None; j += 1; continue
             hit = next(((k, m) for k, rx in FIELD_RE for m in [rx.match(s)] if m), None)
             if hit:
                 cur = hit[0]; fields[cur] = hit[1].group(1); j += 1; continue
@@ -209,16 +231,17 @@ def parse(book, first, last):
                 t = lines[k][1]
                 if re.fullmatch(r"(\s*(STR|DEX|CON|INT|WIS|CHA)\b)+\s*", t):
                     labels += re.findall(r"\b(STR|DEX|CON|INT|WIS|CHA)\b", t); skip.add(k)
-                elif re.fullmatch(r"(\s*\d{1,2}\s*\(\s*[+\-−–]?\s*\d+\s*\))+\s*", t):
-                    values += [int(v) for v in re.findall(r"(\d{1,2})\s*\(", t)]; skip.add(k)
+                elif re.fullmatch(r"(\s*[0-9lIO]{1,2}\s*\(\s*[+\-−–]?\s*[0-9lIO]+\s*\))+\s*", t):
+                    values += [num(v) for v in re.findall(r"([0-9lIO]{1,2})\s*\(", t)]; skip.add(k)
                 if len(values) >= 6:
                     break
         if len(values) >= 6:
             order = labels if len(labels) == 6 and len(set(labels)) == 6 else ["STR", "DEX", "CON", "INT", "WIS", "CHA"]
             c["abilities"] = {k.lower(): v for k, v in zip(order, values[:6])}
-        hp = re.match(r"\s*(\d+)\s*(\((.*)\))?", fields.get("hp", ""))
+        hp = re.match(r"\s*([0-9lIO]+)\s*(\((.*)\))?", fields.get("hp", ""))
         if hp:
-            c["hp"] = {"average": int(hp.group(1)), "dice": re.sub(r"\s+", " ", (hp.group(3) or "").replace("d1 0", "d10").replace("d1 2", "d12")).strip()}
+            dice = re.sub(r"[lI](?=[0-9lI]*d)|(?<=d)[lI]|(?<=d[0-9])[lI]", "1", (hp.group(3) or "").replace("d1 0", "d10").replace("d1 2", "d12")).replace("dlO", "d10")
+            c["hp"] = {"average": num(hp.group(1)), "dice": re.sub(r"\s+", " ", dice).strip()}
         for k in ("speed", "saves", "skills", "vulnerabilities", "resistances", "immunities", "conditionImmunities", "senses", "languages"):
             if fields.get(k):
                 c[k] = ocr.clean(re.sub(r"\s+", " ", fields[k])).replace(" ft .", " ft.").replace("ft.", " ft.").replace("  ", " ").strip(" .")
@@ -226,7 +249,7 @@ def parse(book, first, last):
         if crm:
             c["cr"] = crm.group(1)
         # traits, then sections
-        sect, entries = "traits", {"traits": [], "actions": [], "reactions": [], "legendary": []}
+        sect, entries = "traits", {"traits": [], "actions": [], "bonusActions": [], "reactions": [], "legendary": []}
         while j < end:
             s = lines[j][1]
             if j in skip:
@@ -246,7 +269,7 @@ def parse(book, first, last):
             j += 1
         for k, v in entries.items():
             if v:
-                c[k] = [{"name": ocr.clean(nm), "text": ocr.clean(join(body)).replace("d1 0", "d10").replace("d1 2", "d12")} for nm, body in v]
+                c[k] = [{"name": ocr.clean(nm), "text": fix_dice(ocr.clean(join(body)))} for nm, body in v]
         if "ac" in c and "hp" in c:
             c.pop("acNote", None) if not c.get("acNote") else None
             out.append(c)
@@ -268,7 +291,7 @@ def parse(book, first, last):
         elif fam not in GROUPS:  # a stray heading, not a family: don't pretend to know what it is
             c["name"] = "Unidentified creature (CR %s, page %s)" % (m.group(2), c["page"]); c["id"] = slug(c["name"])
     canon_set = set(canon)
-    dropped = [c["name"] for c in out if c["name"] not in canon_set and not re.match(r".+ \(CR [\d/]+(, page \d+)?\)$", c["name"])]
+    dropped = [c["name"] for c in out if c["name"] not in canon_set and not re.match(r".+ \(CR [\d/]+(, page \d+)?\)$", c["name"]) and not (titled(c["name"]) and c.get("abilities"))]
     out = [c for c in out if c["name"] not in dropped]
     if dropped:
         sys.stderr.write("names too garbled to keep: %s\n" % ", ".join(dropped))

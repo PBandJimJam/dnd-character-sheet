@@ -19,10 +19,12 @@ BOOKS = {
     "phb": {"name": "Player's Handbook", "abbr": "PHB", "spells": (211, 291)},
     "xge": {"name": "Xanathar's Guide to Everything", "abbr": "XGE", "spells": (150, 172)},
     "tce": {"name": "Tasha's Cauldron of Everything", "abbr": "TCE", "spells": (104, 118)},
-    "mpmm": {"name": "Mordenkainen Presents: Monsters of the Multiverse", "abbr": "MPMM"},
+    "mpmm": {"name": "Mordenkainen Presents: Monsters of the Multiverse", "abbr": "MPMM", "loadOrder": 60, "creatures": (1, 288)},
     "ftd": {"name": "Fizban's Treasury of Dragons", "abbr": "FTD", "spells": (19, 25)},
     "dmg": {"name": "Dungeon Master's Guide", "abbr": "DMG"},
     "mm": {"name": "Monster Manual", "abbr": "MM"},
+    "vgm": {"name": "Volo's Guide to Monsters", "abbr": "VGM", "loadOrder": 10, "creatures": (1, 226)},
+    "mtf": {"name": "Mordenkainen's Tome of Foes", "abbr": "MTF", "loadOrder": 10, "creatures": (1, 258)},
 }
 
 
@@ -31,6 +33,8 @@ def main(book):
     pack = {"format": "dnd-content-pack", "schema": 2, "edition": "2014", "id": book, "name": meta["name"],
             "_about": "Built from your copy of the book by tools/extract/build_pack.py. Keep it out of the repo.",
             "source": {"abbr": meta["abbr"], "title": meta["name"]}}
+    if meta.get("loadOrder"):
+        pack["loadOrder"] = meta["loadOrder"]
     fixes = json.load(open(os.path.join(HERE, "fixes.json"))).get(book, {})
     if meta.get("spells"):
         sp, misses = spellparser.parse(book, *meta["spells"])
@@ -38,6 +42,11 @@ def main(book):
             s.update(fixes.get("spells", {}).get(s["id"], {}))
         pack["spells"] = sp
         print("spells: %d (%d names not matched: %s)" % (len(sp), len(misses), ", ".join(misses)))
+    if meta.get("creatures"):
+        import creatures
+        cs = creatures.parse(book, *meta["creatures"])
+        pack["creatures"] = sorted(cs, key=lambda c: c["name"])
+        print("creatures: %d (%d with all six scores)" % (len(cs), sum("abilities" in c for c in cs)))
     defs = os.path.join(HERE, "books", book + ".py")
     if os.path.exists(defs):
         spec = importlib.util.spec_from_file_location(book, defs)
