@@ -1699,7 +1699,7 @@ function viewSheet(){
    ${coinsCard()}
    <section class="card"><div class="card-h"><h2>Gear</h2><button class="btn small" id="sh-item">Add item</button></div>
     <div class="tbl"><table class="inv">${inv.map(i=>{const def=i.item&&ref("items",i.item);const canEq=!def||["weapon","armor","shield","wondrous","ring","rod","staff","wand"].includes(def.kind);
-      return `<tr><td><b>${esc(itemName(i))}${+i.magic?" +"+i.magic:""}</b>${def&&(def.rarity||def.kind==="weapon"||def.kind==="armor")?` <span class="tag">${esc(def.rarity||(def.weapon?def.weapon.dmg+" "+def.weapon.damageType:"AC "+def.armor.base+(def.armor.dexCap===0?"":def.armor.dexCap?" + Dex (max "+def.armor.dexCap+")":" + Dex")))}</span>`:""}
+      return `<tr><td><b>${esc(itemName(i))}${+i.magic?" +"+i.magic:""}</b>${def&&(def.rarity||def.kind==="weapon"||def.kind==="armor")?` <span class="tag">${esc(def.rarity||(def.weapon?def.weapon.dmg+" "+def.weapon.damageType:def.armor?"AC "+def.armor.base+(def.armor.dexCap===0?"":def.armor.dexCap?" + Dex (max "+def.armor.dexCap+")":" + Dex"):""))}</span>`:""}
         <div class="row" style="gap:10px">${canEq?`<label class="check" style="font-size:.78rem"><input type="checkbox" data-equip="${esc(i.id)}" ${i.equipped?"checked":""}> ${def&&def.kind==="wondrous"?"Held/worn":"Equipped"}</label>`:""}${!def||def.attune?`<label class="check" style="font-size:.78rem"><input type="checkbox" data-attune="${esc(i.id)}" ${i.attuned?"checked":""}> Attuned</label>`:""}</div>
         ${i.note?`<div class="muted" style="font-size:.8rem">${esc(i.note)}</div>`:""}${def&&def.text?`<details><summary class="muted" style="font-size:.8rem">What it does</summary><p style="white-space:pre-wrap;font-size:.84rem;margin:4px 0">${esc(def.text)}</p></details>`:""}</td>
         <td class="q"><button class="btn small ghost" data-qty="${esc(i.id)}" data-d="-1" aria-label="One fewer">−</button><span class="num">${i.qty}</span><button class="btn small ghost" data-qty="${esc(i.id)}" data-d="1" aria-label="One more">+</button><button class="btn small ghost" data-rmitem="${esc(i.id)}">Remove</button></td></tr>`}).join("")}</table></div>
@@ -2083,7 +2083,8 @@ function renderEmpty(){
   $("#topbar").innerHTML=`<div class="ident"><h1>D&amp;D Ledger</h1><span class="sub">Character sheet and play log</span></div>`;
   const cl=Object.values(R.classes).sort((a,b)=>a.name.localeCompare(b.name));
   const races=Object.values(R.races).sort((a,b)=>a.name.localeCompare(b.name));const bgs=Object.values(R.backgrounds).sort((a,b)=>a.name.localeCompare(b.name));
-  const armors=Object.values(R.items).filter(i=>i.kind==="armor").sort((a,b)=>(a.armor.base-b.armor.base)||a.name.localeCompare(b.name));
+  // Only armor with its own AC; magic "any armor" items (Armor of Resistance) are added on top of a base armor later.
+  const armors=Object.values(R.items).filter(i=>i.kind==="armor"&&i.armor&&i.armor.base).sort((a,b)=>(a.armor.base-b.armor.base)||a.name.localeCompare(b.name));
   const ab=[["str","Str",15],["dex","Dex",14],["con","Con",13],["int","Int",12],["wis","Wis",10],["cha","Cha",8]];
   $("#view").innerHTML=`<div class="grid"><div class="col">
    <section class="card"><div class="card-h"><h2>Create your character</h2></div>
